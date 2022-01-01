@@ -12,6 +12,10 @@ public interface GenerationRequest {
     @NotNull List<Integer> sections();
 
     interface Chunk extends GenerationRequest {
+        int chunkX();
+
+        int chunkZ();
+
         @Override
         default @NotNull List<Integer> sections() {
             var instance = instance();

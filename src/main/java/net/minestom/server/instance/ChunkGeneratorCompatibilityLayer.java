@@ -1,5 +1,6 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.instance.batch.ChunkGenerationBatch;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationResponse;
 import net.minestom.server.instance.generator.Generator;
@@ -21,6 +22,13 @@ class ChunkGeneratorCompatibilityLayer implements Generator {
 
     @Override
     public @NotNull GenerationResponse generate(@NotNull GenerationRequest request) {
+        if (request instanceof GenerationRequest.Chunk chunk) {
+            final ChunkGenerationBatch batch = new ChunkGenerationBatch((InstanceContainer) request.instance(), null);
+            chunkGenerator.generateChunkData(batch, chunk.chunkX(), chunk.chunkZ());
+        }else{
+            // Fallback to section generation
+            request.sections();
+        }
         return null;
     }
 
