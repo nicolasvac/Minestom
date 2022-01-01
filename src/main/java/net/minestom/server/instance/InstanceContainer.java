@@ -290,13 +290,7 @@ public class InstanceContainer extends Instance {
             if (result == null) {
                 System.out.println("Null response: " + Thread.currentThread());
             }
-            var optFuture = result.future();
-            CompletableFuture<Chunk> future;
-            if (optFuture.isPresent()) {
-                future = optFuture.get().thenApply(o -> chunk);
-            } else {
-                future = CompletableFuture.completedFuture(chunk);
-            }
+            CompletableFuture<Chunk> future = result.future().thenApply(o -> chunk);
             future.thenAccept((c) -> {
                 c.sendChunk();
                 refreshLastBlockChangeTime();

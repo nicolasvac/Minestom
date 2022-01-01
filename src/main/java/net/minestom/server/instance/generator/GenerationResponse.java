@@ -1,8 +1,12 @@
 package net.minestom.server.instance.generator;
 
-import java.util.Optional;
+import net.minestom.server.utils.async.AsyncUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.CompletableFuture;
 
 public interface GenerationResponse {
-    Optional<CompletableFuture<?>> future();
+    default @NotNull CompletableFuture<?> future() {
+        return AsyncUtils.VOID_FUTURE;
+    }
 }
