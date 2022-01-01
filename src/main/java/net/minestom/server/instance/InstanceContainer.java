@@ -15,9 +15,9 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.rule.BlockPlacementRule;
+import net.minestom.server.instance.generator.GenerationRequest;
+import net.minestom.server.instance.generator.GenerationResponse;
 import net.minestom.server.instance.generator.Generator;
-import net.minestom.server.instance.generator.SectionResult;
-import net.minestom.server.instance.generator.units.*;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.EffectPacket;
 import net.minestom.server.network.packet.server.play.UnloadChunkPacket;
@@ -48,7 +48,7 @@ public class InstanceContainer extends Instance {
     // the shared instances assigned to this instance
     private final List<SharedInstance> sharedInstances = new CopyOnWriteArrayList<>();
 
-    private @Nullable Generator<? extends GenerationRequest<?>, ? extends GenerationResponse<?>> generator;
+    private Generator generator;
     // (chunk index -> chunk) map, contains all the chunks in the instance
     // used as a monitor when access is required
     private final Long2ObjectSyncMap<Chunk> chunks = Long2ObjectSyncMap.hashmap();
@@ -283,30 +283,25 @@ public class InstanceContainer extends Instance {
     protected @NotNull CompletableFuture<@NotNull Chunk> createChunk(int chunkX, int chunkZ) {
         final Chunk chunk = chunkSupplier.createChunk(this, chunkX, chunkZ);
         Check.notNull(chunk, "Chunks supplied by a ChunkSupplier cannot be null.");
-        if (getGenerator() != null && chunk.shouldGenerate()) {
-            final Class<? extends GenerationRequest<?>> requestType = getGenerator().supportedRequestType();
-
-            if (requestType == ChunkGenerationRequest.class) {
-                final Generator<ChunkGenerationRequest, ChunkGenerationResponse> generator = this.getGenerator();
-                return generator.generate(this, new ChunkGenerationRequest()).futures().get(0).thenAccept(c -> {
-                            c.sendChunk();
-                            refreshLastBlockChangeTime();
-                        })
-                        .thenCompose(v -> CompletableFuture.completedFuture(chunk));
-            } else if (requestType == SectionGenerationRequest.class) {
-                final Generator<SectionGenerationRequest, SectionGenerationResponse> generator = this.getGenerator();
-                return AsyncUtils.allOf(generator.generate(this, new SectionGenerationRequest()).futures())
-                        .thenAccept(result -> {
-                            for (SectionResult sectionResult : result) {
-                                chunk.setSection(sectionResult.sectionData());
-                            }
-                            chunk.sendChunk();
-                            refreshLastBlockChangeTime();
-                        })
-                        .thenCompose(v -> CompletableFuture.completedFuture(chunk));
-            } else {
-                throw new IllegalStateException("Generator doesn't support any known generation request!");
+        Generator generator = getGenerator();
+        if (generator != null && chunk.shouldGenerate()) {
+            GenerationRequest.Chunk request = () -> this;
+            GenerationResponse result = generator.generate(request);
+            if (result == null) {
+                System.out.println("Null response: " + Thread.currentThread());
             }
+            var optFuture = result.future();
+            CompletableFuture<Chunk> future;
+            if (optFuture.isPresent()) {
+                future = optFuture.get().thenApply(o -> chunk);
+            } else {
+                future = CompletableFuture.completedFuture(chunk);
+            }
+            future.thenAccept((c) -> {
+                c.sendChunk();
+                refreshLastBlockChangeTime();
+            });
+            return future;
         } else {
             // No chunk generator, execute the callback with the empty chunk
             return CompletableFuture.completedFuture(chunk);
@@ -459,12 +454,12 @@ public class InstanceContainer extends Instance {
     }
 
     @Override
-    public <T extends GenerationRequest<R>, R extends GenerationResponse<?>> @Nullable Generator<T, R> getGenerator() {
-        return (Generator<T, R>) this.generator;
+    public @Nullable Generator getGenerator() {
+        return generator;
     }
 
     @Override
-    public <T extends GenerationRequest<R>, R extends GenerationResponse<?>> void setGenerator(@Nullable Generator<T, R> generator) {
+    public void setGenerator(@Nullable Generator generator) {
         this.generator = generator;
     }
 

@@ -1,13 +1,14 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.instance.generator.GenerationRequest;
+import net.minestom.server.instance.generator.GenerationResponse;
 import net.minestom.server.instance.generator.Generator;
-import net.minestom.server.instance.generator.units.ChunkGenerationRequest;
-import net.minestom.server.instance.generator.units.ChunkGenerationResponse;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides full compatibility for the deprecated {@link ChunkGenerator}
  */
-class ChunkGeneratorCompatibilityLayer implements Generator<ChunkGenerationRequest, ChunkGenerationResponse> {
+class ChunkGeneratorCompatibilityLayer implements Generator {
     private final ChunkGenerator chunkGenerator;
 
     public ChunkGeneratorCompatibilityLayer(ChunkGenerator chunkGenerator) {
@@ -19,13 +20,8 @@ class ChunkGeneratorCompatibilityLayer implements Generator<ChunkGenerationReque
     }
 
     @Override
-    public ChunkGenerationResponse generate(Instance instance, ChunkGenerationRequest request) {
+    public @NotNull GenerationResponse generate(@NotNull GenerationRequest request) {
         return null;
-    }
-
-    @Override
-    public Class<ChunkGenerationRequest> supportedRequestType() {
-        return ChunkGenerationRequest.class;
     }
 
 

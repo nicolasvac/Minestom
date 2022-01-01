@@ -19,8 +19,6 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.instance.generator.Generator;
-import net.minestom.server.instance.generator.units.GenerationRequest;
-import net.minestom.server.instance.generator.units.GenerationResponse;
 import net.minestom.server.network.packet.server.play.BlockActionPacket;
 import net.minestom.server.network.packet.server.play.TimeUpdatePacket;
 import net.minestom.server.tag.Tag;
@@ -278,14 +276,14 @@ public abstract class Instance implements Block.Getter, Block.Setter, Tickable, 
      *
      * @return the generator if any
      */
-    public abstract <T extends GenerationRequest<R>, R extends GenerationResponse<?>> @Nullable Generator<T, R> getGenerator();
+    public abstract @Nullable Generator getGenerator();
 
     /**
      * Changes the generator of the instance
      *
      * @param generator the new generator, or null to disable generation
      */
-    public abstract <T extends GenerationRequest<R>, R extends GenerationResponse<?>> void setGenerator(@Nullable Generator<T, R> generator);
+    public abstract void setGenerator(@Nullable Generator generator);
 
     /**
      * Gets all the instance's loaded chunks.
