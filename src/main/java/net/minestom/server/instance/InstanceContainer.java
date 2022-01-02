@@ -285,15 +285,12 @@ public class InstanceContainer extends Instance {
         Check.notNull(chunk, "Chunks supplied by a ChunkSupplier cannot be null.");
         Generator generator = getGenerator();
         if (generator != null && chunk.shouldGenerate()) {
-            GenerationRequest request = GeneratorImpl.createRequest(this);
-
             List<GenerationUnit.Section> sections = chunk.getSections().stream().map(GeneratorImpl::createSection).toList();
 
-            GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(sections);
+            GenerationRequest request = GeneratorImpl.createRequest(this, sections);
+            GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(this, sections);
             generator.generate(request, chunkUnit);
-            {
-                // Apply generation...
-            }
+            // TODO optional future
             CompletableFuture<Chunk> future = CompletableFuture.completedFuture(chunk);
             future.thenAccept((c) -> {
                 c.sendChunk();

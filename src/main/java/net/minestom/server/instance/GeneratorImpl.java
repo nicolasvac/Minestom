@@ -13,7 +13,7 @@ import java.util.List;
 
 final class GeneratorImpl {
 
-    static GenerationRequest createRequest(Instance instance) {
+    static GenerationRequest createRequest(Instance instance, List<GenerationUnit.Section> sections) {
         return new GenerationRequest() {
             @Override
             public @NotNull Instance instance() {
@@ -22,44 +22,40 @@ final class GeneratorImpl {
 
             @Override
             public @NotNull List<GenerationUnit.Section> sections() {
-                return null;
+                return sections;
             }
 
             @Override
             public @NotNull UnitProperty property(@NotNull GenerationUnit unit) {
-                return null;
+                throw new UnsupportedOperationException();
             }
         };
     }
 
     static GenerationUnit.Section createSection(Section chunkSection) {
-        return new GenerationUnit.Section() {
+        return () -> new UnitModifier() {
             @Override
-            public @NotNull UnitModifier modifier() {
-                return new UnitModifier() {
-                    @Override
-                    public void fill(@NotNull Block block) {
-                        throw new UnsupportedOperationException();
-                    }
+            public void fill(@NotNull Block block) {
+                throw new UnsupportedOperationException();
+            }
 
-                    @Override
-                    public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
-                        throw new UnsupportedOperationException();
-                    }
+            @Override
+            public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
+                throw new UnsupportedOperationException();
+            }
 
-                    @Override
-                    public void setBlock(int x, int y, int z, @NotNull Block block) {
-                        final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                        final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                        final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-                        chunkSection.blockPalette().set(localX, localY, localZ, block.stateId());
-                    }
-                };
+            @Override
+            public void setBlock(int x, int y, int z, @NotNull Block block) {
+                final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
+                final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
+                final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
+                chunkSection.blockPalette().set(localX, localY, localZ, block.stateId());
             }
         };
     }
 
-    static GenerationUnit.Chunk createChunk(List<GenerationUnit.Section> sections) {
+    static GenerationUnit.Chunk createChunk(Instance instance, List<GenerationUnit.Section> sections) {
+        final int minY = instance.getSectionMinY() * 16;
         return new GenerationUnit.Chunk() {
             @Override
             public @NotNull List<Section> sections() {
@@ -81,6 +77,7 @@ final class GeneratorImpl {
 
                     @Override
                     public void setBlock(int x, int y, int z, @NotNull Block block) {
+                        y -= minY;
                         final int sectionY = ChunkUtils.getChunkCoordinate(y);
                         final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
                         final int localY = ChunkUtils.toSectionRelativeCoordinate(y);

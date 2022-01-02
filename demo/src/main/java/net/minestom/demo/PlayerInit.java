@@ -21,6 +21,7 @@ import net.minestom.server.event.player.PlayerDeathEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
@@ -125,7 +126,13 @@ public class PlayerInit {
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
         instanceContainer.setGenerator((request, unit) -> {
             if (unit instanceof GenerationUnit.Chunk chunk) {
-                chunk.modifier().setBlock(0, 45, 0, Block.STONE);
+                var modifier = chunk.modifier();
+                for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
+                    for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
+                        for (byte y = 0; y < 40; y++) {
+                            modifier.setBlock(x, y, z, Block.STONE);
+                        }
+                    }
             }
         });
 
