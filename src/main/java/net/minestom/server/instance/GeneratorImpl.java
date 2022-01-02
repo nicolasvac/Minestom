@@ -104,9 +104,12 @@ final class GeneratorImpl {
 
         @Override
         public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
-            for (int x = start.blockX(); x < end.blockX(); x++) {
-                for (int y = start.blockY(); y < end.blockY(); y++) {
-                    for (int z = start.blockZ(); z < end.blockZ(); z++) {
+            final int endX = end.blockX();
+            final int endY = end.blockY();
+            final int endZ = end.blockZ();
+            for (int x = start.blockX(); x < endX; x++) {
+                for (int y = start.blockY(); y < endY; y++) {
+                    for (int z = start.blockZ(); z < endZ; z++) {
                         setBlock(x, y, z, block);
                     }
                 }
