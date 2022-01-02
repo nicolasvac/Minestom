@@ -310,7 +310,8 @@ public class InstanceContainer extends Instance {
                     stage.set(future);
                 }
             };
-            GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(this, List.of(chunk));
+            GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(getSectionMinY(), getSectionMaxY(),
+                    List.of(chunk));
             generator.generate(request, chunkUnit);
 
             CompletableFuture<Chunk> resultFuture = new CompletableFuture<>();

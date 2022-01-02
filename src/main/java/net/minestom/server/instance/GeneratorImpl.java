@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
-    static List<UnitProperty.Chunk> createChunkProperties(Instance instance, List<Chunk> chunks) {
-        final int sizeY = (instance.getSectionMinY() + instance.getSectionMaxY()) * 16;
-        final int minY = instance.getSectionMinY() * 16;
+    static List<UnitProperty.Chunk> createChunkProperties(int minSection, int maxSection, List<Chunk> chunks) {
+        final int sizeY = (minSection + maxSection) * 16;
+        final int minY = minSection * 16;
 
         Map<Chunk, List<UnitProperty.Section>> chunkSectionsMap = new HashMap<>(chunks.size());
         for (Chunk chunk : chunks) {
@@ -74,8 +74,8 @@ final class GeneratorImpl {
         return (List) result;
     }
 
-    static GenerationUnit.Chunk createChunk(Instance instance, List<Chunk> chunks) {
-        final List<UnitProperty.Chunk> c = createChunkProperties(instance, chunks);
+    static GenerationUnit.Chunk createChunk(int minSection, int maxSection, List<Chunk> chunks) {
+        final List<UnitProperty.Chunk> c = createChunkProperties(minSection, maxSection, chunks);
         final List<UnitProperty.Section> s = new ArrayList<>();
         for (UnitProperty.Chunk chunk : c) s.addAll(chunk.sections());
         record Impl(List<UnitProperty.Section> sections, List<UnitProperty.Chunk> chunks)
