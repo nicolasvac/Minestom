@@ -21,35 +21,32 @@ final class GeneratorImpl {
     }
 
     static List<UnitProperty.Section> createSectionProperties(List<Section> chunkSections) {
-        return chunkSections.stream().map(section -> (UnitProperty.Section) new UnitProperty.Section() {
-            @Override
-            public int absoluteHeight() {
-                return 0; // TODO
-            }
+        record Impl(int absoluteHeight, UnitModifier modifier)
+                implements UnitProperty.Section {
+        }
+        var result = chunkSections.stream().map(section -> {
+            final UnitModifier modifier = new UnitModifier() {
+                @Override
+                public void fill(@NotNull Block block) {
+                    throw new UnsupportedOperationException();
+                }
 
-            @Override
-            public @NotNull UnitModifier modifier() {
-                return new UnitModifier() {
-                    @Override
-                    public void fill(@NotNull Block block) {
-                        throw new UnsupportedOperationException();
-                    }
+                @Override
+                public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
+                    throw new UnsupportedOperationException();
+                }
 
-                    @Override
-                    public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
-                    public void setBlock(int x, int y, int z, @NotNull Block block) {
-                        final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                        final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                        final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-                        section.blockPalette().set(localX, localY, localZ, block.stateId());
-                    }
-                };
-            }
+                @Override
+                public void setBlock(int x, int y, int z, @NotNull Block block) {
+                    final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
+                    final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
+                    final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
+                    section.blockPalette().set(localX, localY, localZ, block.stateId());
+                }
+            };
+            return new Impl(0, modifier);
         }).toList();
+        return (List) result;
     }
 
     static GenerationUnit createSection(List<Section> chunkSections) {
@@ -65,79 +62,49 @@ final class GeneratorImpl {
             chunksSections.addAll(sectionProperties);
             chunkSectionsMap.put(chunk, sectionProperties);
         }
+        record Impl(int chunkX, int chunkZ, List<Section> sections, int sizeY, UnitModifier modifier)
+                implements UnitProperty.Chunk {
+        }
 
-        return chunks.stream().map(chunk -> {
+        final var result = chunks.stream().map(chunk -> {
             final var sections = chunkSectionsMap.get(chunk);
             final int sizeY = (instance.getSectionMinY() - instance.getSectionMaxY()) * 16;
             final int minY = instance.getSectionMinY() * 16;
-
-            return (UnitProperty.Chunk) new UnitProperty.Chunk() {
+            final UnitModifier modifier = new UnitModifier() {
                 @Override
-                public int chunkX() {
-                    return chunk.getChunkX();
+                public void fill(@NotNull Block block) {
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
-                public int chunkZ() {
-                    return chunk.getChunkZ();
+                public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
-                public @NotNull List<Section> sections() {
-                    return sections;
-                }
+                public void setBlock(int x, int y, int z, @NotNull Block block) {
+                    y -= minY;
+                    final int sectionY = ChunkUtils.getChunkCoordinate(y);
+                    final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
+                    final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
+                    final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
 
-                @Override
-                public int sizeY() {
-                    return sizeY;
-                }
-
-                @Override
-                public @NotNull UnitModifier modifier() {
-                    return new UnitModifier() {
-                        @Override
-                        public void fill(@NotNull Block block) {
-                            throw new UnsupportedOperationException();
-                        }
-
-                        @Override
-                        public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
-                            throw new UnsupportedOperationException();
-                        }
-
-                        @Override
-                        public void setBlock(int x, int y, int z, @NotNull Block block) {
-                            y -= minY;
-                            final int sectionY = ChunkUtils.getChunkCoordinate(y);
-                            final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                            final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                            final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-
-                            final UnitProperty.Section section = sections().get(sectionY);
-                            section.modifier().setBlock(localX, localY, localZ, block);
-                        }
-                    };
+                    final UnitProperty.Section section = sections.get(sectionY);
+                    section.modifier().setBlock(localX, localY, localZ, block);
                 }
             };
+            return new Impl(chunk.getChunkX(), chunk.getChunkZ(), sections, sizeY, modifier);
         }).toList();
+        return (List) result;
     }
 
     static GenerationUnit.Chunk createChunk(Instance instance, List<Chunk> chunks) {
         final List<UnitProperty.Chunk> c = createChunkProperties(instance, chunks);
         final List<UnitProperty.Section> s = new ArrayList<>();
-        for (UnitProperty.Chunk chunk : c) {
-            s.addAll(chunk.sections());
+        for (UnitProperty.Chunk chunk : c) s.addAll(chunk.sections());
+        record Impl(List<UnitProperty.Section> sections, List<UnitProperty.Chunk> chunks)
+                implements GenerationUnit.Chunk {
         }
-        return new GenerationUnit.Chunk() {
-            @Override
-            public @NotNull List<UnitProperty.Chunk> chunks() {
-                return c;
-            }
-
-            @Override
-            public @NotNull List<UnitProperty.Section> sections() {
-                return s;
-            }
-        };
+        return new Impl(s, c);
     }
 }
