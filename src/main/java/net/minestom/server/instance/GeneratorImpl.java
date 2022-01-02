@@ -37,12 +37,7 @@ final class GeneratorImpl {
                 final UnitModifier modifier = new ModifierImpl(start, end) {
                     @Override
                     public void setBlock(int x, int y, int z, @NotNull Block block) {
-                        if (x < 0 || x >= 16 || y < 0 || y >= 16 || z < 0 || z >= 16)
-                            return;
-                        final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                        final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                        final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-                        section.blockPalette().set(localX, localY, localZ, block.stateId());
+                        section.blockPalette().set(x, y, z, block.stateId());
                     }
                 };
                 return new SectionImpl(sectionX, sectionY, sectionZ, size, start, end, modifier);
