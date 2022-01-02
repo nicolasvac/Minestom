@@ -14,8 +14,4 @@ public interface GenerationUnit {
     interface Chunk extends GenerationUnit {
         @NotNull List<UnitProperty.Chunk> chunks();
     }
-
-    interface Region extends Chunk {
-        @NotNull List<UnitProperty.Region> regions();
-    }
 }

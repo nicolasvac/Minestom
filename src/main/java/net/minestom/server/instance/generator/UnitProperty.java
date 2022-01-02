@@ -34,10 +34,4 @@ public interface UnitProperty {
             return sections().get(offset);
         }
     }
-
-    interface Region extends UnitProperty {
-        int regionX();
-
-        int regionZ();
-    }
 }
