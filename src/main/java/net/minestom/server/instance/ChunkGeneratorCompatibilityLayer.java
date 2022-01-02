@@ -1,6 +1,7 @@
 package net.minestom.server.instance;
 
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.instance.batch.ChunkBatch;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
@@ -46,7 +47,13 @@ class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<Generatio
 
     @Override
     public void generate(@NotNull GenerationRequest request, GenerationUnit.@NotNull Chunk unit) {
-        // TODO convert to old generation api
+        ChunkBatch batch = new ChunkBatch() {
+            @Override
+            public void setBlock(int x, int y, int z, @NotNull Block block) {
+                unit.modifier().setBlock(x, y, z, block);
+            }
+        };
+        chunkGenerator.generateChunkData(batch, 0, 0);
     }
 
     @Override

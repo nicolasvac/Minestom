@@ -27,7 +27,10 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
+import net.minestom.server.instance.generator.Generator;
+import net.minestom.server.instance.generator.SpecializedGenerator;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.item.ItemStack;
@@ -38,6 +41,7 @@ import net.minestom.server.monitoring.TickMonitor;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.time.TimeUnit;
 import net.minestom.server.world.DimensionType;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -124,17 +128,38 @@ public class PlayerInit {
         NoiseTestGenerator noiseTestGenerator = new NoiseTestGenerator();
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
-        instanceContainer.setGenerator((request, unit) -> {
-            if (unit instanceof GenerationUnit.Chunk chunk) {
-                var modifier = chunk.modifier();
-                for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
-                    for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
-                        for (byte y = 0; y < 40; y++) {
-                            modifier.setBlock(x, y, z, Block.STONE);
+
+        if(false){
+            instanceContainer.setGenerator((request, unit) -> {
+                if (unit instanceof GenerationUnit.Chunk chunk) {
+                    var modifier = chunk.modifier();
+                    for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
+                        for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
+                            for (byte y = 0; y < 40; y++) {
+                                modifier.setBlock(x, y, z, Block.STONE);
+                            }
                         }
-                    }
-            }
-        });
+                }
+            });
+        }else{
+            instanceContainer.setGenerator(Generator.specialize(new SpecializedGenerator<GenerationUnit.Chunk>() {
+                @Override
+                public void generate(@NotNull GenerationRequest request, @NotNull GenerationUnit.Chunk chunk) {
+                    var modifier = chunk.modifier();
+                    for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
+                        for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
+                            for (byte y = 0; y < 40; y++) {
+                                modifier.setBlock(x, y, z, Block.STONE);
+                            }
+                        }
+                }
+
+                @Override
+                public @NotNull Class<GenerationUnit.Chunk> requiredSubtype() {
+                    return GenerationUnit.Chunk.class;
+                }
+            }));
+        }
 
         inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
         inventory.setItemStack(3, ItemStack.of(Material.DIAMOND, 34));
