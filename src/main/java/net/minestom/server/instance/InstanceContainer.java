@@ -279,6 +279,10 @@ public class InstanceContainer extends Instance {
                         this.loadingChunks.remove(ChunkUtils.getChunkIndex(chunk));
                     }
                     completableFuture.complete(chunk);
+                })
+                .exceptionally(throwable -> {
+                    MinecraftServer.getExceptionManager().handleException(throwable);
+                    return null;
                 });
         if (loader.supportsParallelLoading()) {
             CompletableFuture.runAsync(retriever);
