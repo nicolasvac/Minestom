@@ -4,18 +4,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface GenerationUnit {
+public sealed interface GenerationUnit permits GenerationUnit.Section {
     @NotNull UnitModifier modifier();
 
-    interface Section extends GenerationUnit {
-        int absoluteHeight();
+    non-sealed interface Section extends GenerationUnit {
     }
 
-    interface Chunk extends GenerationUnit {
-        int chunkX();
-
-        int chunkZ();
-
+    interface Chunk extends Section {
         @NotNull List<Section> sections();
 
         default Section section(int offset) {
@@ -23,11 +18,7 @@ public interface GenerationUnit {
         }
     }
 
-    interface Region extends GenerationUnit {
-        int regionX();
-
-        int regionZ();
-
+    interface Region extends Chunk {
         @NotNull List<Chunk> chunks();
 
         @NotNull Chunk chunk(int chunkX, int chunkZ);

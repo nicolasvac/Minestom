@@ -15,4 +15,10 @@ public interface GenerationRequest {
     default GenerationUnit.Section section(int offset) {
         return sections().get(offset);
     }
+
+    @NotNull UnitProperty property(@NotNull GenerationUnit unit);
+
+    default @NotNull UnitProperty.Section sectionProperty(@NotNull GenerationUnit.Section section) {
+        return (UnitProperty.Section) property(section);
+    }
 }
