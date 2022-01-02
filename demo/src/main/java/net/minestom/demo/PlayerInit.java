@@ -129,29 +129,33 @@ public class PlayerInit {
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
 
-        if(false){
+        if (false) {
             instanceContainer.setGenerator((request, unit) -> {
-                if (unit instanceof GenerationUnit.Chunk chunk) {
-                    var modifier = chunk.modifier();
-                    for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
-                        for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
-                            for (byte y = 0; y < 40; y++) {
-                                modifier.setBlock(x, y, z, Block.STONE);
+                if (unit instanceof GenerationUnit.Chunk chunkUnit) {
+                    for (var chunk : chunkUnit.chunks()) {
+                        var modifier = chunk.modifier();
+                        for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
+                            for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
+                                for (byte y = 0; y < 40; y++) {
+                                    modifier.setBlock(x, y, z, Block.STONE);
+                                }
                             }
-                        }
+                    }
                 }
             });
-        }else{
+        } else {
             instanceContainer.setGenerator(Generator.specialize(new SpecializedGenerator<GenerationUnit.Chunk>() {
                 @Override
-                public void generate(@NotNull GenerationRequest request, @NotNull GenerationUnit.Chunk chunk) {
-                    var modifier = chunk.modifier();
-                    for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
-                        for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
-                            for (byte y = 0; y < 40; y++) {
-                                modifier.setBlock(x, y, z, Block.STONE);
+                public void generate(@NotNull GenerationRequest request, @NotNull GenerationUnit.Chunk chunkUnit) {
+                    for (var chunk : chunkUnit.chunks()) {
+                        var modifier = chunk.modifier();
+                        for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
+                            for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
+                                for (byte y = 0; y < 40; y++) {
+                                    modifier.setBlock(x, y, z, Block.STONE);
+                                }
                             }
-                        }
+                    }
                 }
 
                 @Override

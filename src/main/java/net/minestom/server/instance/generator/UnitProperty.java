@@ -1,6 +1,12 @@
 package net.minestom.server.instance.generator;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnknownNullability;
+
+import java.util.List;
+
 public interface UnitProperty {
+    @NotNull UnitModifier modifier();
 
     int sizeX();
 
@@ -31,6 +37,12 @@ public interface UnitProperty {
         int chunkX();
 
         int chunkZ();
+
+        @NotNull List<Section> sections();
+
+        default @UnknownNullability Section section(int offset) {
+            return sections().get(offset);
+        }
 
         @Override
         default int sizeX() {
