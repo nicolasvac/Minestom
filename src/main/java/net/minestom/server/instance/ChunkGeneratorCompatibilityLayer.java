@@ -1,8 +1,10 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.instance.batch.ChunkGenerationBatch;
+import net.minestom.server.coordinate.Vec;
+import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationResponse;
+import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,14 +24,26 @@ class ChunkGeneratorCompatibilityLayer implements Generator {
 
     @Override
     public @NotNull GenerationResponse generate(@NotNull GenerationRequest request) {
-        if (request instanceof GenerationRequest.Chunk chunk) {
-            final ChunkGenerationBatch batch = new ChunkGenerationBatch((InstanceContainer) request.instance(), null);
-            chunkGenerator.generateChunkData(batch, chunk.chunkX(), chunk.chunkZ());
-        }else{
+        var unit = request.unit();
+        if (unit instanceof GenerationUnit.Chunk chunk) {
+            // A full chunk has been requested, can simply fill
+            chunk.modifier().fill(new Vec(0, 0, 0), new Vec(16, 50, 0), Block.STONE);
+        } else {
             // Fallback to section generation
-            request.sections();
+            for (var section : request.sections()) {
+                final double height = section.absoluteHeight();
+                if (height < 0 || height > 50) continue;
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        for (int y = 0; y < 16; y++) {
+                            if (height + y > 50) continue;
+                            section.modifier().setBlock(x, y, z, Block.STONE);
+                        }
+                    }
+                }
+            }
         }
-        return null;
+        return GenerationResponse.completed();
     }
 
 

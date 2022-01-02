@@ -3,27 +3,16 @@ package net.minestom.server.instance.generator;
 import net.minestom.server.instance.Instance;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface GenerationRequest {
+    @NotNull GenerationUnit unit();
+
     @NotNull Instance instance();
 
-    @NotNull List<Integer> sections();
+    @NotNull List<GenerationUnit.Section> sections();
 
-    interface Chunk extends GenerationRequest {
-        int chunkX();
-
-        int chunkZ();
-
-        @Override
-        default @NotNull List<Integer> sections() {
-            var instance = instance();
-            List<Integer> sections = new ArrayList<>();
-            for (int y = instance.getSectionMinY(); y <= instance.getSectionMaxY(); y++) {
-                sections.add(y);
-            }
-            return List.copyOf(sections);
-        }
+    default GenerationUnit.Section section(int offset) {
+        return sections().get(offset);
     }
 }
