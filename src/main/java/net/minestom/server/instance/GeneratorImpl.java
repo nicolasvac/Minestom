@@ -16,21 +16,28 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
-    static List<UnitProperty.Chunk> createChunkProperties(int minSection, int maxSection, List<Chunk> chunks) {
+
+    record ChunkEntry(List<Section> sections, int x, int z) {
+        public ChunkEntry(Chunk chunk) {
+            this(chunk.getSections(), chunk.getChunkX(), chunk.getChunkZ());
+        }
+    }
+
+    static List<UnitProperty.Chunk> createChunkProperties(int minSection, int maxSection, List<ChunkEntry> chunks) {
         final int sizeY = (minSection + maxSection) * 16;
         final int minY = minSection * 16;
 
-        Map<Chunk, List<UnitProperty.Section>> chunkSectionsMap = new HashMap<>(chunks.size());
-        for (Chunk chunk : chunks) {
+        Map<ChunkEntry, List<UnitProperty.Section>> chunkSectionsMap = new HashMap<>(chunks.size());
+        for (ChunkEntry chunk : chunks) {
             record SectionImpl(int sectionX, int sectionY, int sectionZ,
                                Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
                     implements UnitProperty.Section {
             }
             AtomicInteger sectionCounterY = new AtomicInteger(minSection);
-            var sectionProperties = chunk.getSections().stream().map(section -> {
-                final int sectionX = chunk.getChunkX();
+            var sectionProperties = chunk.sections().stream().map(section -> {
+                final int sectionX = chunk.x();
                 final int sectionY = sectionCounterY.getAndIncrement();
-                final int sectionZ = chunk.getChunkZ();
+                final int sectionZ = chunk.z();
                 final var size = new Vec(16, 16, 16);
                 final var start = new Vec(sectionX * 16, sectionY * 16, sectionZ * 16);
                 final var end = new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16);
@@ -51,8 +58,8 @@ final class GeneratorImpl {
 
         final var result = chunks.stream().map(chunk -> {
             final var sections = chunkSectionsMap.get(chunk);
-            final int chunkX = chunk.getChunkX();
-            final int chunkZ = chunk.getChunkZ();
+            final int chunkX = chunk.x();
+            final int chunkZ = chunk.z();
             final var size = new Vec(16, sizeY - minY, 16);
             final var start = new Vec(chunkX * 16, minY, chunkZ * 16);
             final var end = new Vec(chunkX * 16 + 16, size.y(), chunkZ * 16 + 16);
@@ -74,7 +81,7 @@ final class GeneratorImpl {
         return (List) result;
     }
 
-    static GenerationUnit.Chunk createChunk(int minSection, int maxSection, List<Chunk> chunks) {
+    static GenerationUnit.Chunk createChunk(int minSection, int maxSection, List<ChunkEntry> chunks) {
         final List<UnitProperty.Chunk> c = createChunkProperties(minSection, maxSection, chunks);
         final List<UnitProperty.Section> s = new ArrayList<>();
         for (UnitProperty.Chunk chunk : c) s.addAll(chunk.sections());

@@ -4,15 +4,13 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
-import net.minestom.server.world.DimensionType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GeneratorTest {
     static final GenerationRequest DUMMY_REQUEST = new GenerationRequest() {
@@ -28,10 +26,12 @@ public class GeneratorTest {
 
     @Test
     public void placement() {
-        Instance instance = createInstance();
-        Chunk chunk = new DynamicChunk(instance, 0, 0);
-        GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(instance.getSectionMinY(), instance.getSectionMaxY(),
-                List.of(chunk));
+        Section[] sections = new Section[16];
+        for (int i = 0; i < sections.length; i++) {
+            sections[i] = new Section();
+        }
+        GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(0, 5,
+                List.of(new GeneratorImpl.ChunkEntry(List.of(sections), 0, 0)));
 
         Generator generator = (request, unit) -> {
             for (var test : unit.units()) {
@@ -41,11 +41,8 @@ public class GeneratorTest {
         };
 
         generator.generate(DUMMY_REQUEST, chunkUnit);
-        assertSame(Block.STONE, chunk.getBlock(0, 0, 0));
-        assertSame(Block.STONE, chunk.getBlock(1, 1, 0));
-    }
-
-    static Instance createInstance() {
-        return new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
+        assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(0, 0, 0));
+        assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(1, 1, 0));
+        assertEquals(0, sections[0].blockPalette().get(0, 1, 0));
     }
 }
