@@ -21,4 +21,12 @@ public interface GenerationRequest {
     default @NotNull UnitProperty.Section sectionProperty(@NotNull GenerationUnit.Section section) {
         return (UnitProperty.Section) property(section);
     }
+
+    default @NotNull UnitProperty.Chunk chunkProperty(@NotNull GenerationUnit.Chunk chunk) {
+        return (UnitProperty.Chunk) property(chunk);
+    }
+
+    default @NotNull UnitProperty.Region regionProperty(@NotNull GenerationUnit.Region region) {
+        return (UnitProperty.Region) property(region);
+    }
 }
