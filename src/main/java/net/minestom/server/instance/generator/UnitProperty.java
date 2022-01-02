@@ -1,5 +1,7 @@
 package net.minestom.server.instance.generator;
 
+import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
@@ -8,28 +10,14 @@ import java.util.List;
 public interface UnitProperty {
     @NotNull UnitModifier modifier();
 
-    int sizeX();
-
-    int sizeY();
-
-    int sizeZ();
+    @NotNull Point size();
 
     interface Section extends UnitProperty {
         int absoluteHeight();
 
         @Override
-        default int sizeX() {
-            return 16;
-        }
-
-        @Override
-        default int sizeY() {
-            return 16;
-        }
-
-        @Override
-        default int sizeZ() {
-            return 16;
+        default @NotNull Point size() {
+            return new Vec(16, 16, 16);
         }
     }
 
@@ -43,37 +31,11 @@ public interface UnitProperty {
         default @UnknownNullability Section section(int offset) {
             return sections().get(offset);
         }
-
-        @Override
-        default int sizeX() {
-            return 16;
-        }
-
-        @Override
-        int sizeY();
-
-        @Override
-        default int sizeZ() {
-            return 16;
-        }
     }
 
     interface Region extends UnitProperty {
         int regionX();
 
         int regionZ();
-
-        @Override
-        default int sizeX() {
-            return 512;
-        }
-
-        @Override
-        int sizeY();
-
-        @Override
-        default int sizeZ() {
-            return 512;
-        }
     }
 }

@@ -1,6 +1,7 @@
 package net.minestom.server.instance;
 
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
@@ -62,7 +63,8 @@ final class GeneratorImpl {
             chunksSections.addAll(sectionProperties);
             chunkSectionsMap.put(chunk, sectionProperties);
         }
-        record Impl(int chunkX, int chunkZ, List<Section> sections, int sizeY, UnitModifier modifier)
+        record Impl(int chunkX, int chunkZ, List<Section> sections,
+                    Point size, UnitModifier modifier)
                 implements UnitProperty.Chunk {
         }
 
@@ -93,7 +95,7 @@ final class GeneratorImpl {
                     section.modifier().setBlock(localX, localY, localZ, block);
                 }
             };
-            return new Impl(chunk.getChunkX(), chunk.getChunkZ(), sections, sizeY, modifier);
+            return new Impl(chunk.getChunkX(), chunk.getChunkZ(), sections, new Vec(16, sizeY, 16), modifier);
         }).toList();
         return (List) result;
     }
