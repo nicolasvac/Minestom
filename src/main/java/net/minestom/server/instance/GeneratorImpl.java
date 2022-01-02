@@ -3,7 +3,6 @@ package net.minestom.server.instance;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.UnitModifier;
 import net.minestom.server.instance.generator.UnitProperty;
@@ -17,11 +16,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
-
-    static GenerationRequest createRequest(Instance instance) {
-        return () -> instance;
-    }
-
     static List<UnitProperty.Chunk> createChunkProperties(Instance instance, List<Chunk> chunks) {
         final int sizeY = (instance.getSectionMinY() + instance.getSectionMaxY()) * 16;
         final int minY = instance.getSectionMinY() * 16;

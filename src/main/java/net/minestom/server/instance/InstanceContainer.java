@@ -36,6 +36,7 @@ import space.vectrix.flare.fastutil.Long2ObjectSyncMap;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -260,8 +261,15 @@ public class InstanceContainer extends Instance {
         }
         final IChunkLoader loader = chunkLoader;
         final Runnable retriever = () -> loader.loadChunk(this, chunkX, chunkZ)
-                // create the chunk from scratch (with the generator) if the loader couldn't
-                .thenCompose(chunk -> chunk != null ? CompletableFuture.completedFuture(chunk) : createChunk(chunkX, chunkZ))
+                .thenCompose(chunk -> {
+                    if (chunk != null) {
+                        // Chunk has been loaded from storage
+                        return CompletableFuture.completedFuture(chunk);
+                    } else {
+                        // Loader couldn't load the chunk, generate it
+                        return createChunk(chunkX, chunkZ);
+                    }
+                })
                 // cache the retrieved chunk
                 .whenComplete((chunk, throwable) -> {
                     // TODO run in the instance thread?
@@ -285,16 +293,39 @@ public class InstanceContainer extends Instance {
         Check.notNull(chunk, "Chunks supplied by a ChunkSupplier cannot be null.");
         Generator generator = getGenerator();
         if (generator != null && chunk.shouldGenerate()) {
-            GenerationRequest request = GeneratorImpl.createRequest(this);
+            final Instance instance = this;
+            AtomicReference<CompletableFuture<?>> stage = new AtomicReference<>(null);
+            GenerationRequest request = new GenerationRequest() {
+                @Override
+                public @NotNull Instance instance() {
+                    return instance;
+                }
+
+                @Override
+                public void returnAsync(@NotNull CompletableFuture<?> future) {
+                    stage.set(future);
+                }
+            };
             GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(this, List.of(chunk));
             generator.generate(request, chunkUnit);
-            // TODO optional future
-            CompletableFuture<Chunk> future = CompletableFuture.completedFuture(chunk);
-            future.thenAccept((c) -> {
+
+            CompletableFuture<Chunk> resultFuture = new CompletableFuture<>();
+            final CompletableFuture<?> future = stage.get();
+            if (future != null) {
+                future.whenComplete((o, throwable) -> {
+                    if (throwable != null) {
+                        resultFuture.completeExceptionally(throwable);
+                    }
+                    resultFuture.complete(chunk);
+                });
+            } else {
+                resultFuture.complete(chunk);
+            }
+            return resultFuture.whenComplete((c, throwable) -> {
                 c.sendChunk();
                 refreshLastBlockChangeTime();
+                resultFuture.complete(c);
             });
-            return future;
         } else {
             // No chunk generator, execute the callback with the empty chunk
             return CompletableFuture.completedFuture(chunk);
