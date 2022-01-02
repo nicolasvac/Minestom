@@ -104,8 +104,6 @@ public abstract class Instance implements Block.Getter, Block.Setter, Tickable, 
      * @param dimensionType the {@link DimensionType} of the instance
      */
     public Instance(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        Check.argCondition(!dimensionType.isRegistered(),
-                "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
         this.uniqueId = uniqueId;
         this.dimensionType = dimensionType;
 

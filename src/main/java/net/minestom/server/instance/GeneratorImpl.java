@@ -26,7 +26,7 @@ final class GeneratorImpl {
                                Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
                     implements UnitProperty.Section {
             }
-            AtomicInteger sectionCounterY = new AtomicInteger(minY);
+            AtomicInteger sectionCounterY = new AtomicInteger(minSection);
             var sectionProperties = chunk.getSections().stream().map(section -> {
                 final int sectionX = chunk.getChunkX();
                 final int sectionY = sectionCounterY.getAndIncrement();
@@ -55,7 +55,7 @@ final class GeneratorImpl {
             final int chunkZ = chunk.getChunkZ();
             final var size = new Vec(16, sizeY - minY, 16);
             final var start = new Vec(chunkX * 16, minY, chunkZ * 16);
-            final var end = new Vec(chunkX * 16 + 16, size.y() + minY, chunkZ * 16 + 16);
+            final var end = new Vec(chunkX * 16 + 16, size.y(), chunkZ * 16 + 16);
             final UnitModifier modifier = new ModifierImpl(start, end) {
                 @Override
                 public void setBlock(int x, int y, int z, @NotNull Block block) {
