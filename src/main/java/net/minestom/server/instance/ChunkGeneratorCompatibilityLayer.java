@@ -2,13 +2,16 @@ package net.minestom.server.instance;
 
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.generator.*;
+import net.minestom.server.instance.generator.GenerationRequest;
+import net.minestom.server.instance.generator.GenerationUnit;
+import net.minestom.server.instance.generator.SpecializedGenerator;
+import net.minestom.server.instance.generator.UnitProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides full compatibility for the deprecated {@link ChunkGenerator}
  */
-class ChunkGeneratorCompatibilityLayer implements Generator {
+class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<GenerationUnit.Chunk> {
     private final ChunkGenerator chunkGenerator;
 
     public ChunkGeneratorCompatibilityLayer(ChunkGenerator chunkGenerator) {
@@ -19,9 +22,7 @@ class ChunkGeneratorCompatibilityLayer implements Generator {
         return chunkGenerator;
     }
 
-    @Override
-    public @NotNull GenerationResponse generate(@NotNull GenerationRequest request) {
-        GenerationUnit unit = request.unit();
+    public void test(@NotNull GenerationRequest request, @NotNull GenerationUnit unit) {
         if (unit instanceof GenerationUnit.Chunk chunk) {
             // A full chunk has been requested, can simply fill
             chunk.modifier().fill(new Vec(0, 0, 0), new Vec(16, 50, 0), Block.STONE);
@@ -41,11 +42,19 @@ class ChunkGeneratorCompatibilityLayer implements Generator {
                 }
             }
         }
-        return GenerationResponse.completed();
     }
 
+    @Override
+    public void generate(@NotNull GenerationRequest request, GenerationUnit.@NotNull Chunk unit) {
+        // TODO convert to old generation api
+    }
 
-//    @Override
+    @Override
+    public @NotNull Class<GenerationUnit.Chunk> requiredSubtype() {
+        return GenerationUnit.Chunk.class;
+    }
+
+    //    @Override
 //    public List<CompletableFuture<SectionResult>> generate(Instance instance, GenerationRequest request) {
 //        var chunkSections = new HashMap<Point, Set<Point>>();
 //        switch (request.unit()) {

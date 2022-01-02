@@ -16,7 +16,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.rule.BlockPlacementRule;
 import net.minestom.server.instance.generator.GenerationRequest;
-import net.minestom.server.instance.generator.GenerationResponse;
+import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.EffectPacket;
@@ -285,12 +285,16 @@ public class InstanceContainer extends Instance {
         Check.notNull(chunk, "Chunks supplied by a ChunkSupplier cannot be null.");
         Generator generator = getGenerator();
         if (generator != null && chunk.shouldGenerate()) {
-            GenerationRequest.Chunk request = () -> this;
-            GenerationResponse result = generator.generate(request);
-            if (result == null) {
-                System.out.println("Null response: " + Thread.currentThread());
+            GenerationRequest request = GeneratorImpl.createRequest(this);
+
+            List<GenerationUnit.Section> sections = chunk.getSections().stream().map(GeneratorImpl::createSection).toList();
+
+            GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(sections);
+            generator.generate(request, chunkUnit);
+            {
+                // Apply generation...
             }
-            CompletableFuture<Chunk> future = result.future().thenApply(o -> chunk);
+            CompletableFuture<Chunk> future = CompletableFuture.completedFuture(chunk);
             future.thenAccept((c) -> {
                 c.sendChunk();
                 refreshLastBlockChangeTime();
@@ -444,7 +448,7 @@ public class InstanceContainer extends Instance {
     @Override
     @Deprecated
     public void setChunkGenerator(ChunkGenerator chunkGenerator) {
-        this.generator = new ChunkGeneratorCompatibilityLayer(chunkGenerator);
+        //this.generator = new ChunkGeneratorCompatibilityLayer(chunkGenerator);
     }
 
     @Override

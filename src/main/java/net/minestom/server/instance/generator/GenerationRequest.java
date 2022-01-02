@@ -6,8 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface GenerationRequest {
-    @NotNull GenerationUnit unit();
-
     @NotNull Instance instance();
 
     @NotNull List<GenerationUnit.Section> sections();
