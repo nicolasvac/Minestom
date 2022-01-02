@@ -53,8 +53,8 @@ public class GeneratorTest {
                 assertEquals(2, property.chunkZ());
                 assertEquals(sections.length, property.sections().size());
                 assertEquals(new Vec(16, sectionCount * 16, 16), property.size());
-                assertEquals(new Vec(48, -16, 32), property.absoluteStart());
-                assertEquals(new Vec(64, sectionCount * 16, 48), property.absoluteEnd());
+                assertEquals(new Vec(48, minSection * 16, 32), property.absoluteStart());
+                assertEquals(new Vec(64, maxSection * 16, 48), property.absoluteEnd());
             }
 
             var modifier = property.modifier();

@@ -62,7 +62,7 @@ final class GeneratorImpl {
             final int chunkZ = chunk.z();
             final var size = new Vec(16, sizeY - minY + 16, 16);
             final var start = new Vec(chunkX * 16, minY, chunkZ * 16);
-            final var end = new Vec(chunkX * 16 + 16, size.y(), chunkZ * 16 + 16);
+            final var end = new Vec(chunkX * 16 + 16, size.y() + minY, chunkZ * 16 + 16);
             final UnitModifier modifier = new ModifierImpl(start, end) {
                 @Override
                 public void setBlock(int x, int y, int z, @NotNull Block block) {
