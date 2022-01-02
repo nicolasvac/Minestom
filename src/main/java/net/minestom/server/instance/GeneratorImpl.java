@@ -97,6 +97,11 @@ final class GeneratorImpl {
         for (UnitProperty.Chunk chunk : c) s.addAll(chunk.sections());
         record Impl(List<UnitProperty.Section> sections, List<UnitProperty.Chunk> chunks)
                 implements GenerationUnit.Chunk {
+
+            @Override
+            public @NotNull List<UnitProperty> units() {
+                return (List) chunks;
+            }
         }
         return new Impl(s, c);
     }
