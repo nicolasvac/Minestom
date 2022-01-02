@@ -5,6 +5,7 @@ import net.minestom.demo.generator.ChunkGeneratorDemo;
 import net.minestom.demo.generator.NoiseTestGenerator;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.audience.Audiences;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -129,18 +130,11 @@ public class PlayerInit {
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
 
-        if (false) {
+        if (true) {
             instanceContainer.setGenerator((request, unit) -> {
-                if (unit instanceof GenerationUnit.Chunk chunkUnit) {
-                    for (var chunk : chunkUnit.chunks()) {
-                        var modifier = chunk.modifier();
-                        for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
-                            for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
-                                for (byte y = 0; y < 40; y++) {
-                                    modifier.setBlock(x, y, z, Block.STONE);
-                                }
-                            }
-                    }
+                for (var test : unit.units()) {
+                    final Point size = test.size();
+                    test.modifier().fill(new Vec(0, 0, 0), new Vec(size.x(), 40, size.z()), Block.STONE);
                 }
             });
         } else {
