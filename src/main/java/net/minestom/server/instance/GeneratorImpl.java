@@ -43,8 +43,9 @@ final class GeneratorImpl {
                 final UnitModifier modifier = new ModifierImpl(start, end) {
                     @Override
                     public void setBlock(int x, int y, int z, @NotNull Block block) {
-                        if (x < start.x() || x >= end.x() || y < start.y() || y >= end.y() || z < start.z() || z >= end.z())
-                            return;
+                        if (x < 0 || x >= 16 || y < 0 || y >= 16 || z < 0 || z >= 16) {
+                            throw new IllegalArgumentException("Block is out of bounds " + x + " " + y + " " + z);
+                        }
                         final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
                         final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
                         final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
