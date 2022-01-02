@@ -31,13 +31,17 @@ public class GeneratorTest {
     public void chunkPlacement() {
         final int minSection = -1;
         final int maxSection = 5;
+
+        final int chunkX = 3;
+        final int chunkZ = 2;
+
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         for (int i = 0; i < sections.length; i++) {
             sections[i] = new Section();
         }
         GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(minSection, maxSection,
-                List.of(new GeneratorImpl.ChunkEntry(List.of(sections), 3, 2)));
+                List.of(new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ)));
 
         Generator generator = (request, unit) -> {
             var list = unit.units();
@@ -53,8 +57,8 @@ public class GeneratorTest {
                 assertEquals(2, property.chunkZ());
                 assertEquals(sections.length, property.sections().size());
                 assertEquals(new Vec(16, sectionCount * 16, 16), property.size());
-                assertEquals(new Vec(48, minSection * 16, 32), property.absoluteStart());
-                assertEquals(new Vec(64, maxSection * 16, 48), property.absoluteEnd());
+                assertEquals(new Vec(chunkX * 16, minSection * 16, chunkZ * 16), property.absoluteStart());
+                assertEquals(new Vec(chunkX * 16 + 16, maxSection * 16, chunkZ * 16 + 16), property.absoluteEnd());
             }
 
             var modifier = property.modifier();
