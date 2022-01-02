@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
 
@@ -21,57 +22,47 @@ final class GeneratorImpl {
         return () -> instance;
     }
 
-    static List<UnitProperty.Section> createSectionProperties(List<Section> chunkSections) {
-        record Impl(int absoluteHeight, UnitModifier modifier)
-                implements UnitProperty.Section {
-        }
-        var result = chunkSections.stream().map(section -> {
-            final UnitModifier modifier = new UnitModifier() {
-                @Override
-                public void fill(@NotNull Block block) {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public void setBlock(int x, int y, int z, @NotNull Block block) {
-                    final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                    final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                    final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-                    section.blockPalette().set(localX, localY, localZ, block.stateId());
-                }
-            };
-            return new Impl(0, modifier);
-        }).toList();
-        return (List) result;
-    }
-
-    static GenerationUnit createSection(List<Section> chunkSections) {
-        final List<UnitProperty.Section> sections = createSectionProperties(chunkSections);
-        return () -> sections;
-    }
-
     static List<UnitProperty.Chunk> createChunkProperties(Instance instance, List<Chunk> chunks) {
-        List<UnitProperty.Section> chunksSections = new ArrayList<>();
-        Map<Chunk, List<UnitProperty.Section>> chunkSectionsMap = new HashMap<>();
+        final int sizeY = (instance.getSectionMinY() + instance.getSectionMaxY()) * 16;
+        final int minY = instance.getSectionMinY() * 16;
+
+        Map<Chunk, List<UnitProperty.Section>> chunkSectionsMap = new HashMap<>(chunks.size());
         for (Chunk chunk : chunks) {
-            var sectionProperties = createSectionProperties(chunk.getSections());
-            chunksSections.addAll(sectionProperties);
-            chunkSectionsMap.put(chunk, sectionProperties);
+            record SectionImpl(int sectionX, int sectionY, int sectionZ, UnitModifier modifier)
+                    implements UnitProperty.Section {
+            }
+            AtomicInteger sectionY = new AtomicInteger(minY);
+            var sectionProperties = chunk.getSections().stream().map(section -> {
+                final UnitModifier modifier = new UnitModifier() {
+                    @Override
+                    public void fill(@NotNull Block block) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public void fill(@NotNull Point start, @NotNull Point end, @NotNull Block block) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public void setBlock(int x, int y, int z, @NotNull Block block) {
+                        final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
+                        final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
+                        final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
+                        section.blockPalette().set(localX, localY, localZ, block.stateId());
+                    }
+                };
+                return new SectionImpl(chunk.getChunkX(), sectionY.getAndIncrement(), chunk.getChunkZ(), modifier);
+            }).toList();
+            chunkSectionsMap.put(chunk, (List) sectionProperties);
         }
-        record Impl(int chunkX, int chunkZ, List<Section> sections,
+        record Impl(int chunkX, int chunkZ, int minY, List<Section> sections,
                     Point size, UnitModifier modifier)
                 implements UnitProperty.Chunk {
         }
 
         final var result = chunks.stream().map(chunk -> {
             final var sections = chunkSectionsMap.get(chunk);
-            final int sizeY = (instance.getSectionMinY() - instance.getSectionMaxY()) * 16;
-            final int minY = instance.getSectionMinY() * 16;
             final UnitModifier modifier = new UnitModifier() {
                 @Override
                 public void fill(@NotNull Block block) {
@@ -95,7 +86,7 @@ final class GeneratorImpl {
                     section.modifier().setBlock(localX, localY, localZ, block);
                 }
             };
-            return new Impl(chunk.getChunkX(), chunk.getChunkZ(), sections, new Vec(16, sizeY, 16), modifier);
+            return new Impl(chunk.getChunkX(), chunk.getChunkZ(), minY, sections, new Vec(16, sizeY - minY, 16), modifier);
         }).toList();
         return (List) result;
     }
