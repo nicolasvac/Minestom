@@ -6,6 +6,7 @@ import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.instance.generator.UnitProperty;
+import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -62,11 +63,13 @@ public class GeneratorTest {
             }
 
             var modifier = property.modifier();
+            modifier.setBlock(3, -5, 0, Block.STONE);
             modifier.setBlock(0, 0, 0, Block.STONE);
             modifier.setBlock(1, 1, 0, Block.STONE);
         };
 
         generator.generate(DUMMY_REQUEST, chunkUnit);
+        assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(3, ChunkUtils.toSectionRelativeCoordinate(-5), 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(1, 1, 0));
         assertEquals(0, sections[1].blockPalette().get(0, 1, 0));

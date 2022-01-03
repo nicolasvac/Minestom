@@ -71,12 +71,8 @@ final class GeneratorImpl {
                 public void setBlock(int x, int y, int z, @NotNull Block block) {
                     y -= minY;
                     final int sectionY = ChunkUtils.getChunkCoordinate(y);
-                    final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                    final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                    final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-
                     final UnitProperty.Section section = sections.get(sectionY);
-                    section.modifier().setBlock(localX, localY, localZ, block);
+                    section.modifier().setBlock(x, y, z, block);
                 }
             };
             return new Impl(chunkX, chunkZ, minY, sections, size, start, end, modifier);
