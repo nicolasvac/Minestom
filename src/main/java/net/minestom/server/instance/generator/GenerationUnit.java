@@ -1,17 +1,37 @@
 package net.minestom.server.instance.generator;
 
+import net.minestom.server.coordinate.Point;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnknownNullability;
 
 import java.util.List;
 
 public interface GenerationUnit {
-    @NotNull List<UnitProperty> units();
+    @NotNull UnitModifier modifier();
+
+    @NotNull Point size();
+
+    @NotNull Point absoluteStart();
+
+    @NotNull Point absoluteEnd();
 
     interface Section extends GenerationUnit {
-        @NotNull List<UnitProperty.Section> sections();
+        int sectionX();
+
+        int sectionY();
+
+        int sectionZ();
     }
 
-    interface Chunk extends Section {
-        @NotNull List<UnitProperty.Chunk> chunks();
+    interface Chunk extends GenerationUnit {
+        int chunkX();
+
+        int chunkZ();
+
+        @NotNull List<Section> sections();
+
+        default @UnknownNullability Section section(int offset) {
+            return sections().get(offset);
+        }
     }
 }

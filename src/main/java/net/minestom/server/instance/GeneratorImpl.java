@@ -3,35 +3,34 @@ package net.minestom.server.instance;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.UnitModifier;
-import net.minestom.server.instance.generator.UnitProperty;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
-
     record ChunkEntry(List<Section> sections, int x, int z) {
         public ChunkEntry(Chunk chunk) {
             this(chunk.getSections(), chunk.getChunkX(), chunk.getChunkZ());
         }
     }
 
-    static List<UnitProperty.Chunk> createChunkProperties(int minSection, int maxSection, List<ChunkEntry> chunks) {
+    static List<GenerationUnit.Chunk> createChunkProperties(int minSection, int maxSection, List<ChunkEntry> chunks) {
         final int sizeY = (minSection + maxSection) * 16;
         final int minY = minSection * 16;
 
-        Map<ChunkEntry, List<UnitProperty.Section>> chunkSectionsMap = new HashMap<>(chunks.size());
+        Map<ChunkEntry, List<GenerationUnit.Section>> chunkSectionsMap = new HashMap<>(chunks.size());
         for (ChunkEntry chunk : chunks) {
             record SectionImpl(int sectionX, int sectionY, int sectionZ,
                                Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
-                    implements UnitProperty.Section {
+                    implements GenerationUnit.Section {
             }
             AtomicInteger sectionCounterY = new AtomicInteger(minSection);
             var sectionProperties = chunk.sections().stream().map(section -> {
@@ -56,7 +55,7 @@ final class GeneratorImpl {
         }
         record Impl(int chunkX, int chunkZ, int minY, List<Section> sections,
                     Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
-                implements UnitProperty.Chunk {
+                implements GenerationUnit.Chunk {
         }
 
         final var result = chunks.stream().map(chunk -> {
@@ -71,7 +70,7 @@ final class GeneratorImpl {
                 public void setBlock(int x, int y, int z, @NotNull Block block) {
                     y -= minY;
                     final int sectionY = ChunkUtils.getChunkCoordinate(y);
-                    final UnitProperty.Section section = sections.get(sectionY);
+                    final GenerationUnit.Section section = sections.get(sectionY);
                     section.modifier().setBlock(x, y, z, block);
                 }
             };
@@ -80,19 +79,34 @@ final class GeneratorImpl {
         return (List) result;
     }
 
-    static GenerationUnit.Chunk createChunk(int minSection, int maxSection, List<ChunkEntry> chunks) {
-        final List<UnitProperty.Chunk> c = createChunkProperties(minSection, maxSection, chunks);
-        final List<UnitProperty.Section> s = new ArrayList<>();
-        for (UnitProperty.Chunk chunk : c) s.addAll(chunk.sections());
-        record Impl(List<UnitProperty.Section> sections, List<UnitProperty.Chunk> chunks)
-                implements GenerationUnit.Chunk {
+    static List<GenerationUnit.Section> sectionUnits(List<GenerationUnit.Chunk> chunks) {
+        return chunks.stream().flatMap(chunk -> chunk.sections().stream()).toList();
+    }
+
+    static GenerationRequest.Chunks chunksRequest(Instance instance,
+                                                  List<GenerationUnit.Chunk> chunkUnits){
+        final List<GenerationUnit.Section> sectionUnits = GeneratorImpl.sectionUnits(chunkUnits);
+        return new GenerationRequest.Chunks() {
+            @Override
+            public @NotNull List<GenerationUnit.Chunk> chunks() {
+                return chunkUnits;
+            }
 
             @Override
-            public @NotNull List<UnitProperty> units() {
-                return (List) chunks;
+            public @NotNull List<GenerationUnit.Section> sections() {
+                return sectionUnits;
             }
-        }
-        return new Impl(s, c);
+
+            @Override
+            public @NotNull Instance instance() {
+                return instance;
+            }
+
+            @Override
+            public void returnAsync(@NotNull CompletableFuture<?> future) {
+                // Empty
+            }
+        };
     }
 
     static abstract class ModifierImpl implements UnitModifier {

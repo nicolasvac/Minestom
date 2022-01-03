@@ -29,7 +29,6 @@ import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
-import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.instance.generator.SpecializedGenerator;
 import net.minestom.server.inventory.Inventory;
@@ -131,17 +130,17 @@ public class PlayerInit {
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
 
         if (true) {
-            instanceContainer.setGenerator((request, unit) -> {
-                for (var test : unit.units()) {
+            instanceContainer.setGenerator((request) -> {
+                for (var test : request.units()) {
                     final Point size = test.size();
                     test.modifier().fill(new Vec(0, 0, 0), new Vec(size.x(), 40, size.z()), Block.STONE);
                 }
             });
         } else {
-            instanceContainer.setGenerator(Generator.specialize(new SpecializedGenerator<GenerationUnit.Chunk>() {
+            instanceContainer.setGenerator(Generator.specialize(new SpecializedGenerator<GenerationRequest.Chunks>() {
                 @Override
-                public void generate(@NotNull GenerationRequest request, @NotNull GenerationUnit.Chunk chunkUnit) {
-                    for (var chunk : chunkUnit.chunks()) {
+                public void generate(@NotNull GenerationRequest.Chunks request) {
+                    for (var chunk : request.chunks()) {
                         var modifier = chunk.modifier();
                         for (byte x = 0; x < Chunk.CHUNK_SIZE_X; x++)
                             for (byte z = 0; z < Chunk.CHUNK_SIZE_Z; z++) {
@@ -153,8 +152,8 @@ public class PlayerInit {
                 }
 
                 @Override
-                public @NotNull Class<GenerationUnit.Chunk> requiredSubtype() {
-                    return GenerationUnit.Chunk.class;
+                public @NotNull Class<GenerationRequest.Chunks> requiredSubtype() {
+                    return GenerationRequest.Chunks.class;
                 }
             }));
         }

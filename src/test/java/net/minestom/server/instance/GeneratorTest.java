@@ -5,28 +5,15 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
-import net.minestom.server.instance.generator.UnitProperty;
 import net.minestom.server.utils.chunk.ChunkUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class GeneratorTest {
-    static final GenerationRequest DUMMY_REQUEST = new GenerationRequest() {
-        @Override
-        public @NotNull Instance instance() {
-            return null;
-        }
-
-        @Override
-        public void returnAsync(@NotNull CompletableFuture<?> future) {
-        }
-    };
 
     @Test
     public void chunkPlacement() {
@@ -41,17 +28,17 @@ public class GeneratorTest {
         for (int i = 0; i < sections.length; i++) {
             sections[i] = new Section();
         }
-        GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(minSection, maxSection,
+        var chunkUnits = GeneratorImpl.createChunkProperties(minSection, maxSection,
                 List.of(new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ)));
 
-        Generator generator = (request, unit) -> {
-            var list = unit.units();
+        Generator generator = (request) -> {
+            var list = request.units();
             assertEquals(1, list.size(), "Single chunk has been requested");
 
             var chunk = list.get(0);
-            assertInstanceOf(UnitProperty.Chunk.class, chunk, "Unit is a chunk");
+            assertInstanceOf(GenerationUnit.Chunk.class, chunk, "Unit is a chunk");
 
-            UnitProperty.Chunk property = (UnitProperty.Chunk) chunk;
+            GenerationUnit.Chunk property = (GenerationUnit.Chunk) chunk;
             // Chunk properties
             {
                 assertEquals(3, property.chunkX());
@@ -68,7 +55,7 @@ public class GeneratorTest {
             modifier.setBlock(1, 1, 0, Block.STONE);
         };
 
-        generator.generate(DUMMY_REQUEST, chunkUnit);
+        generator.generate(GeneratorImpl.chunksRequest(null, chunkUnits));
         assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(3, ChunkUtils.toSectionRelativeCoordinate(-5), 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(1, 1, 0));
@@ -78,15 +65,15 @@ public class GeneratorTest {
     @Test
     public void sectionFill() {
         Section section = new Section();
-        GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(-1, -1,
+        var chunkUnits = GeneratorImpl.createChunkProperties(-1, -1,
                 List.of(new GeneratorImpl.ChunkEntry(List.of(section), 0, 0)));
 
-        Generator generator = (request, unit) -> {
-            var property = ((GenerationUnit.Section) unit).sections().get(0);
+        Generator generator = (request) -> {
+            var property = ((GenerationRequest.Sections) request).sections().get(0);
             property.modifier().fill(Block.STONE);
         };
 
-        generator.generate(DUMMY_REQUEST, chunkUnit);
+        generator.generate(GeneratorImpl.chunksRequest(null, chunkUnits));
         assertEquals(Block.STONE.stateId(), section.blockPalette().get(0, 0, 0));
     }
 }

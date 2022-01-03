@@ -5,13 +5,12 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.SpecializedGenerator;
-import net.minestom.server.instance.generator.UnitProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides full compatibility for the deprecated {@link ChunkGenerator}
  */
-class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<GenerationUnit.Chunk> {
+class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<GenerationRequest.Chunks> {
     private final ChunkGenerator chunkGenerator;
 
     public ChunkGeneratorCompatibilityLayer(ChunkGenerator chunkGenerator) {
@@ -23,8 +22,8 @@ class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<Generatio
     }
 
     @Override
-    public void generate(@NotNull GenerationRequest request, GenerationUnit.@NotNull Chunk chunkUnit) {
-        for (UnitProperty.Chunk chunk : chunkUnit.chunks()) {
+    public void generate(@NotNull GenerationRequest.Chunks request) {
+        for (GenerationUnit.Chunk chunk : request.chunks()) {
             ChunkBatch batch = new ChunkBatch() {
                 @Override
                 public void setBlock(int x, int y, int z, @NotNull Block block) {
@@ -36,7 +35,7 @@ class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<Generatio
     }
 
     @Override
-    public @NotNull Class<GenerationUnit.Chunk> requiredSubtype() {
-        return GenerationUnit.Chunk.class;
+    public @NotNull Class<GenerationRequest.Chunks> requiredSubtype() {
+        return GenerationRequest.Chunks.class;
     }
 }

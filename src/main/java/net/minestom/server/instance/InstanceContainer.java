@@ -299,7 +299,20 @@ public class InstanceContainer extends Instance {
         if (generator != null && chunk.shouldGenerate()) {
             final Instance instance = this;
             AtomicReference<CompletableFuture<?>> stage = new AtomicReference<>(null);
-            GenerationRequest request = new GenerationRequest() {
+           var chunkUnits = GeneratorImpl.createChunkProperties(getSectionMinY(), getSectionMaxY(),
+                    List.of(new GeneratorImpl.ChunkEntry(chunk)));
+            final List<GenerationUnit.Section> sectionUnits = GeneratorImpl.sectionUnits(chunkUnits);
+            generator.generate(new GenerationRequest.Chunks() {
+                @Override
+                public @NotNull List<GenerationUnit.Chunk> chunks() {
+                    return chunkUnits;
+                }
+
+                @Override
+                public @NotNull List<GenerationUnit.Section> sections() {
+                    return sectionUnits;
+                }
+
                 @Override
                 public @NotNull Instance instance() {
                     return instance;
@@ -309,10 +322,7 @@ public class InstanceContainer extends Instance {
                 public void returnAsync(@NotNull CompletableFuture<?> future) {
                     stage.set(future);
                 }
-            };
-            GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(getSectionMinY(), getSectionMaxY(),
-                    List.of(new GeneratorImpl.ChunkEntry(chunk)));
-            generator.generate(request, chunkUnit);
+            });
 
             CompletableFuture<Chunk> resultFuture = new CompletableFuture<>();
             final CompletableFuture<?> future = stage.get();
