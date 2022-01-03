@@ -71,4 +71,19 @@ public class GeneratorTest {
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(1, 1, 0));
         assertEquals(0, sections[1].blockPalette().get(0, 1, 0));
     }
+
+    @Test
+    public void sectionFill() {
+        Section section = new Section();
+        GenerationUnit.Chunk chunkUnit = GeneratorImpl.createChunk(-1, -1,
+                List.of(new GeneratorImpl.ChunkEntry(List.of(section), 0, 0)));
+
+        Generator generator = (request, unit) -> {
+            var property = ((GenerationUnit.Section) unit).sections().get(0);
+            property.modifier().fill(Block.STONE);
+        };
+
+        generator.generate(DUMMY_REQUEST, chunkUnit);
+        assertEquals(Block.STONE.stateId(), section.blockPalette().get(0, 0, 0));
+    }
 }

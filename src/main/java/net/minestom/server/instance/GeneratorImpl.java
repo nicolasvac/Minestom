@@ -44,7 +44,10 @@ final class GeneratorImpl {
                 final UnitModifier modifier = new ModifierImpl(start, end) {
                     @Override
                     public void setBlock(int x, int y, int z, @NotNull Block block) {
-                        section.blockPalette().set(x, y, z, block.stateId());
+                        final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
+                        final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
+                        final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
+                        section.blockPalette().set(localX, localY, localZ, block.stateId());
                     }
                 };
                 return new SectionImpl(sectionX, sectionY, sectionZ, size, start, end, modifier);
