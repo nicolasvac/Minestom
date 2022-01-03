@@ -11,13 +11,14 @@ public interface GenerationRequest {
 
     void returnAsync(@NotNull CompletableFuture<?> future);
 
-    @NotNull List<GenerationUnit> units();
+    @NotNull List<@NotNull GenerationUnit> units();
 
     interface Sections extends GenerationRequest {
         @NotNull List<GenerationUnit.Section> sections();
 
         @Override
         default @NotNull List<GenerationUnit> units() {
+            //noinspection unchecked,rawtypes
             return (List) sections();
         }
     }
@@ -27,6 +28,7 @@ public interface GenerationRequest {
 
         @Override
         default @NotNull List<GenerationUnit> units() {
+            //noinspection unchecked,rawtypes
             return (List) chunks();
         }
     }

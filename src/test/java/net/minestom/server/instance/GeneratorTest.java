@@ -31,7 +31,7 @@ public class GeneratorTest {
         var chunkUnits = GeneratorImpl.createChunkProperties(minSection, maxSection,
                 List.of(new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ)));
 
-        Generator generator = (request) -> {
+        Generator generator = request -> {
             var list = request.units();
             assertEquals(1, list.size(), "Single chunk has been requested");
 
@@ -68,7 +68,7 @@ public class GeneratorTest {
         var chunkUnits = GeneratorImpl.createChunkProperties(-1, -1,
                 List.of(new GeneratorImpl.ChunkEntry(List.of(section), 0, 0)));
 
-        Generator generator = (request) -> {
+        Generator generator = request -> {
             var property = ((GenerationRequest.Sections) request).sections().get(0);
             property.modifier().fill(Block.STONE);
         };

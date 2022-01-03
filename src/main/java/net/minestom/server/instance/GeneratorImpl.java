@@ -16,6 +16,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
+    private static final Vec SECTION_SIZE = new Vec(16, 16, 16);
+
     record ChunkEntry(List<Section> sections, int x, int z) {
         public ChunkEntry(Chunk chunk) {
             this(chunk.getSections(), chunk.getChunkX(), chunk.getChunkZ());
@@ -37,7 +39,6 @@ final class GeneratorImpl {
                 final int sectionX = chunk.x();
                 final int sectionY = sectionCounterY.getAndIncrement();
                 final int sectionZ = chunk.z();
-                final var size = new Vec(16, 16, 16);
                 final var start = new Vec(sectionX * 16, sectionY * 16, sectionZ * 16);
                 final var end = new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16);
                 final UnitModifier modifier = new ModifierImpl(start, end) {
@@ -49,7 +50,7 @@ final class GeneratorImpl {
                         section.blockPalette().set(localX, localY, localZ, block.stateId());
                     }
                 };
-                return new SectionImpl(sectionX, sectionY, sectionZ, size, start, end, modifier);
+                return new SectionImpl(sectionX, sectionY, sectionZ, SECTION_SIZE, start, end, modifier);
             }).toList();
             chunkSectionsMap.put(chunk, (List) sectionProperties);
         }
@@ -84,7 +85,7 @@ final class GeneratorImpl {
     }
 
     static GenerationRequest.Chunks chunksRequest(Instance instance,
-                                                  List<GenerationUnit.Chunk> chunkUnits){
+                                                  List<GenerationUnit.Chunk> chunkUnits) {
         final List<GenerationUnit.Section> sectionUnits = GeneratorImpl.sectionUnits(chunkUnits);
         return new GenerationRequest.Chunks() {
             @Override

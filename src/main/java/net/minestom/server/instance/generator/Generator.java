@@ -16,6 +16,7 @@ public interface Generator {
         final var requiredSubtype = generator.requiredSubtype();
         return (request) -> {
             if (request instanceof GenerationRequest.Chunks chunks && requiredSubtype.isInstance(chunks)) {
+                //noinspection unchecked
                 generator.generate((T) request);
                 return;
             }
