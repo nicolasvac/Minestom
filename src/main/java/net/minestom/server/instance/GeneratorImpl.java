@@ -49,6 +49,11 @@ final class GeneratorImpl {
                         final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
                         section.blockPalette().set(localX, localY, localZ, block.stateId());
                     }
+
+                    @Override
+                    public void fill(@NotNull Block block) {
+                        section.blockPalette().fill(block.stateId());
+                    }
                 };
                 return new SectionImpl(sectionX, sectionY, sectionZ, SECTION_SIZE, start, end, modifier);
             }).toList();
@@ -73,6 +78,13 @@ final class GeneratorImpl {
                     final int sectionY = ChunkUtils.getChunkCoordinate(y);
                     final GenerationUnit.Section section = sections.get(sectionY);
                     section.modifier().setBlock(x, y, z, block);
+                }
+
+                @Override
+                public void fill(@NotNull Block block) {
+                    for (GenerationUnit.Section section : sections) {
+                        section.modifier().fill(block);
+                    }
                 }
             };
             return new Impl(chunkX, chunkZ, minY, sections, size, start, end, modifier);
