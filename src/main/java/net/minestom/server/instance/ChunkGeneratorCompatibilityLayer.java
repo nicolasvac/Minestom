@@ -10,17 +10,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Provides full compatibility for the deprecated {@link ChunkGenerator}
  */
-class ChunkGeneratorCompatibilityLayer implements SpecializedGenerator<GenerationRequest.Chunks> {
-    private final ChunkGenerator chunkGenerator;
-
-    public ChunkGeneratorCompatibilityLayer(ChunkGenerator chunkGenerator) {
-        this.chunkGenerator = chunkGenerator;
-    }
-
-    public ChunkGenerator getChunkGenerator() {
-        return chunkGenerator;
-    }
-
+record ChunkGeneratorCompatibilityLayer(@NotNull ChunkGenerator chunkGenerator)
+        implements SpecializedGenerator<GenerationRequest.Chunks> {
     @Override
     public void generate(@NotNull GenerationRequest.Chunks request) {
         for (GenerationUnit.Chunk chunk : request.chunks()) {

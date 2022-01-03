@@ -299,7 +299,7 @@ public class InstanceContainer extends Instance {
         if (generator != null && chunk.shouldGenerate()) {
             final Instance instance = this;
             AtomicReference<CompletableFuture<?>> stage = new AtomicReference<>(null);
-           var chunkUnits = GeneratorImpl.createChunkProperties(getSectionMinY(), getSectionMaxY(),
+            var chunkUnits = GeneratorImpl.createChunkProperties(getSectionMinY(), getSectionMaxY(),
                     List.of(new GeneratorImpl.ChunkEntry(chunk)));
             final List<GenerationUnit.Section> sectionUnits = GeneratorImpl.sectionUnits(chunkUnits);
             generator.generate(new GenerationRequest.Chunks() {
@@ -477,9 +477,6 @@ public class InstanceContainer extends Instance {
     @Override
     @Deprecated
     public ChunkGenerator getChunkGenerator() {
-        if (generator instanceof ChunkGeneratorCompatibilityLayer compatibilityLayer) {
-            return compatibilityLayer.getChunkGenerator();
-        }
         return null;
     }
 
@@ -489,7 +486,7 @@ public class InstanceContainer extends Instance {
     @Override
     @Deprecated
     public void setChunkGenerator(ChunkGenerator chunkGenerator) {
-        //this.generator = new ChunkGeneratorCompatibilityLayer(chunkGenerator);
+        setGenerator(Generator.specialize(new ChunkGeneratorCompatibilityLayer(chunkGenerator)));
     }
 
     @Override
