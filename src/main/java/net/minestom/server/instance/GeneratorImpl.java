@@ -22,38 +22,38 @@ final class GeneratorImpl {
         }
     }
 
-    static GenerationUnit.Chunk chunk(int minSection, int maxSection, ChunkEntry chunk) {
-        final int sizeY = (minSection + maxSection) * 16;
-        final int minY = minSection * 16;
-
-        List<? extends GenerationUnit.Section> sections;
+    static GenerationUnit.Section section(Section section, int sectionX, int sectionY, int sectionZ) {
         record SectionImpl(int sectionX, int sectionY, int sectionZ,
                            Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
                 implements GenerationUnit.Section {
         }
-        AtomicInteger sectionCounterY = new AtomicInteger(minSection);
-        sections = chunk.sections().stream().map(section -> {
-            final int sectionX = chunk.x();
-            final int sectionY = sectionCounterY.getAndIncrement();
-            final int sectionZ = chunk.z();
-            final var start = new Vec(sectionX * 16, sectionY * 16, sectionZ * 16);
-            final var end = new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16);
-            final UnitModifier modifier = new ModifierImpl(start, end) {
-                @Override
-                public void setBlock(int x, int y, int z, @NotNull Block block) {
-                    final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                    final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                    final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
-                    section.blockPalette().set(localX, localY, localZ, block.stateId());
-                }
+        final var start = new Vec(sectionX * 16, sectionY * 16, sectionZ * 16);
+        final var end = new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16);
+        final UnitModifier modifier = new ModifierImpl(start, end) {
+            @Override
+            public void setBlock(int x, int y, int z, @NotNull Block block) {
+                final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
+                final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
+                final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
+                section.blockPalette().set(localX, localY, localZ, block.stateId());
+            }
 
-                @Override
-                public void fill(@NotNull Block block) {
-                    section.blockPalette().fill(block.stateId());
-                }
-            };
-            return new SectionImpl(sectionX, sectionY, sectionZ, SECTION_SIZE, start, end, modifier);
-        }).toList();
+            @Override
+            public void fill(@NotNull Block block) {
+                section.blockPalette().fill(block.stateId());
+            }
+        };
+        return new SectionImpl(sectionX, sectionY, sectionZ, SECTION_SIZE, start, end, modifier);
+    }
+
+    static GenerationUnit.Chunk chunk(int minSection, int maxSection, ChunkEntry chunk) {
+        final int sizeY = (minSection + maxSection) * 16;
+        final int minY = minSection * 16;
+
+        AtomicInteger sectionCounterY = new AtomicInteger(minSection);
+        List<GenerationUnit.Section> sections = chunk.sections().stream()
+                .map(section -> section(section, chunk.x(), chunk.z(), sectionCounterY.getAndIncrement()))
+                .toList();
         record Impl(int chunkX, int chunkZ, int minY, List<Section> sections,
                     Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
                 implements GenerationUnit.Chunk {
@@ -80,7 +80,7 @@ final class GeneratorImpl {
                 }
             }
         };
-        return new Impl(chunkX, chunkZ, minY, (List<GenerationUnit.Section>) sections, size, start, end, modifier);
+        return new Impl(chunkX, chunkZ, minY, sections, size, start, end, modifier);
     }
 
     static GenerationRequest request(Instance instance, GenerationUnit unit) {

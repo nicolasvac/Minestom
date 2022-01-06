@@ -59,16 +59,14 @@ public class GeneratorTest {
     @Test
     public void sectionFill() {
         Section section = new Section();
-        var chunkUnit = GeneratorImpl.chunk(-1, -1,
-                new GeneratorImpl.ChunkEntry(List.of(section), 0, 0));
-
+        var chunkUnit = GeneratorImpl.section(section, -1, -1, 0);
         Generator generator = request -> {
-            var unit = (GenerationUnit.Chunk) request.unit();
-            var property = unit.sections().get(0);
-            property.modifier().fill(Block.STONE);
+            var unit = (GenerationUnit.Section) request.unit();
+            unit.modifier().fill(Block.STONE);
         };
 
         generator.generate(GeneratorImpl.request(null, chunkUnit));
-        assertEquals(Block.STONE.stateId(), section.blockPalette().get(0, 0, 0));
+        section.blockPalette().getAllPresent((x, y, z, value) ->
+                assertEquals(Block.STONE.stateId(), value));
     }
 }
