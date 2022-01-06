@@ -11,22 +11,21 @@ import org.jetbrains.annotations.NotNull;
  * Provides full compatibility for the deprecated {@link ChunkGenerator}
  */
 record ChunkGeneratorCompatibilityLayer(@NotNull ChunkGenerator chunkGenerator)
-        implements SpecializedGenerator<GenerationRequest.Chunks> {
+        implements SpecializedGenerator<GenerationUnit.Chunk> {
     @Override
-    public void generate(@NotNull GenerationRequest.Chunks request) {
-        for (GenerationUnit.Chunk chunk : request.chunks()) {
-            ChunkBatch batch = new ChunkBatch() {
-                @Override
-                public void setBlock(int x, int y, int z, @NotNull Block block) {
-                    chunk.modifier().setBlock(x, y, z, block);
-                }
-            };
-            chunkGenerator.generateChunkData(batch, chunk.chunkX(), chunk.chunkZ());
-        }
+    public void generate(@NotNull GenerationRequest request) {
+        GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
+        ChunkBatch batch = new ChunkBatch() {
+            @Override
+            public void setBlock(int x, int y, int z, @NotNull Block block) {
+                chunk.modifier().setBlock(x, y, z, block);
+            }
+        };
+        chunkGenerator.generateChunkData(batch, chunk.chunkX(), chunk.chunkZ());
     }
 
     @Override
-    public @NotNull Class<GenerationRequest.Chunks> requiredSubtype() {
-        return GenerationRequest.Chunks.class;
+    public @NotNull Class<GenerationUnit.Chunk> requiredSubtype() {
+        return GenerationUnit.Chunk.class;
     }
 }

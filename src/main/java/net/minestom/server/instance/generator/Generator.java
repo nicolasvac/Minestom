@@ -12,12 +12,12 @@ public interface Generator {
         requests.forEach(this::generate);
     }
 
-    static <T extends GenerationRequest> @NotNull Generator specialize(@NotNull SpecializedGenerator<T> generator) {
+    static <T extends GenerationUnit> @NotNull Generator specialize(@NotNull SpecializedGenerator<T> generator) {
         final var requiredSubtype = generator.requiredSubtype();
         return (request) -> {
-            if (request instanceof GenerationRequest.Chunks chunks && requiredSubtype.isInstance(chunks)) {
-                //noinspection unchecked
-                generator.generate((T) request);
+            GenerationUnit unit = request.unit();
+            if (requiredSubtype.isInstance(unit)) {
+                generator.generate(request);
                 return;
             }
             throw new UnsupportedOperationException("Not implemented yet: " + request + " " + requiredSubtype);

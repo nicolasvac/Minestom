@@ -2,7 +2,6 @@ package net.minestom.server.instance;
 
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.utils.chunk.ChunkUtils;
@@ -28,34 +27,29 @@ public class GeneratorTest {
         for (int i = 0; i < sections.length; i++) {
             sections[i] = new Section();
         }
-        var chunkUnits = GeneratorImpl.createChunkProperties(minSection, maxSection,
-                List.of(new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ)));
+        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection,
+                new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ));
 
         Generator generator = request -> {
-            var list = request.units();
-            assertEquals(1, list.size(), "Single chunk has been requested");
-
-            var chunk = list.get(0);
+            GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
             assertInstanceOf(GenerationUnit.Chunk.class, chunk, "Unit is a chunk");
-
-            GenerationUnit.Chunk property = (GenerationUnit.Chunk) chunk;
             // Chunk properties
             {
-                assertEquals(3, property.chunkX());
-                assertEquals(2, property.chunkZ());
-                assertEquals(sections.length, property.sections().size());
-                assertEquals(new Vec(16, sectionCount * 16, 16), property.size());
-                assertEquals(new Vec(chunkX * 16, minSection * 16, chunkZ * 16), property.absoluteStart());
-                assertEquals(new Vec(chunkX * 16 + 16, maxSection * 16, chunkZ * 16 + 16), property.absoluteEnd());
+                assertEquals(3, chunk.chunkX());
+                assertEquals(2, chunk.chunkZ());
+                assertEquals(sections.length, chunk.sections().size());
+                assertEquals(new Vec(16, sectionCount * 16, 16), chunk.size());
+                assertEquals(new Vec(chunkX * 16, minSection * 16, chunkZ * 16), chunk.absoluteStart());
+                assertEquals(new Vec(chunkX * 16 + 16, maxSection * 16, chunkZ * 16 + 16), chunk.absoluteEnd());
             }
 
-            var modifier = property.modifier();
+            var modifier = chunk.modifier();
             modifier.setBlock(3, -5, 0, Block.STONE);
             modifier.setBlock(0, 0, 0, Block.STONE);
             modifier.setBlock(1, 1, 0, Block.STONE);
         };
 
-        generator.generate(GeneratorImpl.chunksRequest(null, chunkUnits));
+        generator.generate(GeneratorImpl.request(null, chunkUnits));
         assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(3, ChunkUtils.toSectionRelativeCoordinate(-5), 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(1, 1, 0));
@@ -65,15 +59,16 @@ public class GeneratorTest {
     @Test
     public void sectionFill() {
         Section section = new Section();
-        var chunkUnits = GeneratorImpl.createChunkProperties(-1, -1,
-                List.of(new GeneratorImpl.ChunkEntry(List.of(section), 0, 0)));
+        var chunkUnit = GeneratorImpl.chunk(-1, -1,
+                new GeneratorImpl.ChunkEntry(List.of(section), 0, 0));
 
         Generator generator = request -> {
-            var property = ((GenerationRequest.Sections) request).sections().get(0);
+            var unit = (GenerationUnit.Chunk) request.unit();
+            var property = unit.sections().get(0);
             property.modifier().fill(Block.STONE);
         };
 
-        generator.generate(GeneratorImpl.chunksRequest(null, chunkUnits));
+        generator.generate(GeneratorImpl.request(null, chunkUnit));
         assertEquals(Block.STONE.stateId(), section.blockPalette().get(0, 0, 0));
     }
 }

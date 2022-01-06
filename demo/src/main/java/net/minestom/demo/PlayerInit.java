@@ -127,10 +127,9 @@ public class PlayerInit {
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
 
         instanceContainer.setGenerator(request -> {
-            for (GenerationUnit unit : request.units()) {
-                final Point size = unit.size();
-                unit.modifier().fill(new Vec(0, 0, 0), new Vec(size.x(), 40, size.z()), Block.STONE);
-            }
+            GenerationUnit unit = request.unit();
+            final Point size = unit.size();
+            unit.modifier().fill(new Vec(0, 0, 0), new Vec(size.x(), 40, size.z()), Block.STONE);
         });
 
         inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
