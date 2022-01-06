@@ -12,15 +12,15 @@ public interface Generator {
         requests.forEach(this::generate);
     }
 
-    static <T extends GenerationUnit> @NotNull Generator specialize(@NotNull SpecializedGenerator<T> generator) {
-        final var requiredSubtype = generator.requiredSubtype();
+    static <T extends GenerationUnit> @NotNull Generator specialize(@NotNull Class<T> subtype,
+                                                                    @NotNull Generator generator) {
         return (request) -> {
             GenerationUnit unit = request.unit();
-            if (requiredSubtype.isInstance(unit)) {
+            if (subtype.isInstance(unit)) {
                 generator.generate(request);
                 return;
             }
-            throw new UnsupportedOperationException("Not implemented yet: " + request + " " + requiredSubtype);
+            throw new UnsupportedOperationException("Not implemented yet: " + request + " " + subtype);
         };
     }
 }

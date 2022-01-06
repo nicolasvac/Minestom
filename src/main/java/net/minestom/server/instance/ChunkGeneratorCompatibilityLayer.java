@@ -4,14 +4,13 @@ import net.minestom.server.instance.batch.ChunkBatch;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
-import net.minestom.server.instance.generator.SpecializedGenerator;
+import net.minestom.server.instance.generator.Generator;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides full compatibility for the deprecated {@link ChunkGenerator}
  */
-record ChunkGeneratorCompatibilityLayer(@NotNull ChunkGenerator chunkGenerator)
-        implements SpecializedGenerator<GenerationUnit.Chunk> {
+record ChunkGeneratorCompatibilityLayer(@NotNull ChunkGenerator chunkGenerator) implements Generator {
     @Override
     public void generate(@NotNull GenerationRequest request) {
         GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
@@ -22,10 +21,5 @@ record ChunkGeneratorCompatibilityLayer(@NotNull ChunkGenerator chunkGenerator)
             }
         };
         chunkGenerator.generateChunkData(batch, chunk.chunkX(), chunk.chunkZ());
-    }
-
-    @Override
-    public @NotNull Class<GenerationUnit.Chunk> requiredSubtype() {
-        return GenerationUnit.Chunk.class;
     }
 }
