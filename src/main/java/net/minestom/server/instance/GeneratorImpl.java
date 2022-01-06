@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
-    private static final Vec SECTION_SIZE = new Vec(16, 16, 16);
+    private static final Vec SECTION_SIZE = new Vec(16);
 
     record ChunkEntry(List<Section> sections, int x, int z) {
         public ChunkEntry(Chunk chunk) {
@@ -28,7 +28,7 @@ final class GeneratorImpl {
                 implements GenerationUnit.Section {
         }
         final var start = new Vec(sectionX * 16, sectionY * 16, sectionZ * 16);
-        final var end = new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16);
+        final var end = start.add(16);
         final UnitModifier modifier = new ModifierImpl(start, end) {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
@@ -52,7 +52,7 @@ final class GeneratorImpl {
 
         AtomicInteger sectionCounterY = new AtomicInteger(minSection);
         List<GenerationUnit.Section> sections = chunk.sections().stream()
-                .map(section -> section(section, chunk.x(), chunk.z(), sectionCounterY.getAndIncrement()))
+                .map(section -> section(section, chunk.x(), sectionCounterY.getAndIncrement(), chunk.z()))
                 .toList();
         record Impl(int chunkX, int chunkZ, int minY, List<Section> sections,
                     Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
