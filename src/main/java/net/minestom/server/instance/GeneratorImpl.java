@@ -3,14 +3,12 @@ package net.minestom.server.instance;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.UnitModifier;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class GeneratorImpl {
@@ -67,6 +65,9 @@ final class GeneratorImpl {
         final UnitModifier modifier = new ModifierImpl(start, end) {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
+                if (ChunkUtils.getChunkCoordinate(x) != chunkX || ChunkUtils.getChunkCoordinate(z) != chunkZ) {
+                    throw new IllegalArgumentException("x and z must be in the same chunk");
+                }
                 y -= minY;
                 final int sectionY = ChunkUtils.getChunkCoordinate(y);
                 final GenerationUnit.Section section = sections.get(sectionY);
@@ -83,31 +84,23 @@ final class GeneratorImpl {
         return new Impl(chunkX, chunkZ, minY, sections, size, start, end, modifier);
     }
 
-    static GenerationRequest request(Instance instance, GenerationUnit unit) {
-        return new GenerationRequest() {
-            @Override
-            public @NotNull Instance instance() {
-                return instance;
-            }
-
-            @Override
-            public void returnAsync(@NotNull CompletableFuture<?> future) {
-                // Empty
-            }
-
-            @Override
-            public @NotNull GenerationUnit unit() {
-                return unit;
-            }
-        };
-    }
-
     static abstract class ModifierImpl implements UnitModifier {
         private final Point start, end;
 
         public ModifierImpl(Point start, Point end) {
             this.start = start;
             this.end = end;
+        }
+
+        @Override
+        public void setAll(@NotNull Supplier supplier) {
+            for (int x = start.blockX(); x < end.x(); x++) {
+                for (int y = start.blockY(); y < end.y(); y++) {
+                    for (int z = start.blockZ(); z < end.z(); z++) {
+                        setBlock(x, y, z, supplier.get(x, y, z));
+                    }
+                }
+            }
         }
 
         @Override
