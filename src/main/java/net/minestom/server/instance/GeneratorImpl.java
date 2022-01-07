@@ -45,7 +45,6 @@ final class GeneratorImpl {
     }
 
     static GenerationUnit.Chunk chunk(int minSection, int maxSection, ChunkEntry chunk) {
-        final int sizeY = (minSection + maxSection) * 16;
         final int minY = minSection * 16;
 
         AtomicInteger sectionCounterY = new AtomicInteger(minSection);
@@ -59,7 +58,7 @@ final class GeneratorImpl {
 
         final int chunkX = chunk.x();
         final int chunkZ = chunk.z();
-        final var size = new Vec(16, sizeY - minY + 16, 16);
+        final var size = new Vec(16, (maxSection - minSection) * 16, 16);
         final var start = new Vec(chunkX * 16, minY, chunkZ * 16);
         final var end = new Vec(chunkX * 16 + 16, size.y() + minY, chunkZ * 16 + 16);
         final UnitModifier modifier = new ModifierImpl(start, end) {
@@ -94,9 +93,9 @@ final class GeneratorImpl {
 
         @Override
         public void setAll(@NotNull Supplier supplier) {
-            for (int x = start.blockX(); x < end.x(); x++) {
-                for (int y = start.blockY(); y < end.y(); y++) {
-                    for (int z = start.blockZ(); z < end.z(); z++) {
+            for (int x = start.blockX(); x < end.blockX(); x++) {
+                for (int y = start.blockY(); y < end.blockY(); y++) {
+                    for (int z = start.blockZ(); z < end.blockZ(); z++) {
                         setBlock(x, y, z, supplier.get(x, y, z));
                     }
                 }
