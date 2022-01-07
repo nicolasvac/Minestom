@@ -37,6 +37,11 @@ final class GeneratorImpl {
             }
 
             @Override
+            public void setRelative(int x, int y, int z, @NotNull Block block) {
+                section.blockPalette().set(x, y, z, block.stateId());
+            }
+
+            @Override
             public void fill(@NotNull Block block) {
                 section.blockPalette().fill(block.stateId());
             }
@@ -66,6 +71,17 @@ final class GeneratorImpl {
             public void setBlock(int x, int y, int z, @NotNull Block block) {
                 if (ChunkUtils.getChunkCoordinate(x) != chunkX || ChunkUtils.getChunkCoordinate(z) != chunkZ) {
                     throw new IllegalArgumentException("x and z must be in the same chunk");
+                }
+                y -= minY;
+                final int sectionY = ChunkUtils.getChunkCoordinate(y);
+                final GenerationUnit.Section section = sections.get(sectionY);
+                section.modifier().setBlock(x, y, z, block);
+            }
+
+            @Override
+            public void setRelative(int x, int y, int z, @NotNull Block block) {
+                if (x < 0 || x >= 16 || y < start.y() || y >= end.y() || z < 0 || z >= 16) {
+                    throw new IllegalArgumentException("x, y and z must be in the chunk");
                 }
                 y -= minY;
                 final int sectionY = ChunkUtils.getChunkCoordinate(y);

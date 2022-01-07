@@ -126,10 +126,37 @@ public class GeneratorTest {
         };
         generator.generate(request(null, chunkUnits));
         for (var section : sections) {
-            section.blockPalette().getAll((x, y, z, value) -> {
-                assertEquals(Block.STONE.stateId(), value);
-            });
+            section.blockPalette().getAll((x, y, z, value) ->
+                    assertEquals(Block.STONE.stateId(), value));
         }
+    }
+
+    @Test
+    public void chunkRelative() {
+        final int minSection = -1;
+        final int maxSection = 5;
+        final int chunkX = 3;
+        final int chunkZ = 2;
+        final int sectionCount = maxSection - minSection;
+        Section[] sections = new Section[sectionCount];
+        Arrays.setAll(sections, i -> new Section());
+        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection,
+                new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ));
+        Generator generator = request -> {
+            GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
+            var modifier = chunk.modifier();
+            assertThrows(Exception.class, () -> modifier.setRelative(-1, 0, 0, Block.STONE));
+            assertThrows(Exception.class, () -> modifier.setRelative(16, 0, 0, Block.STONE));
+            assertThrows(Exception.class, () -> modifier.setRelative(17, 0, 0, Block.STONE));
+            assertThrows(Exception.class, () -> modifier.setRelative(0, -17, 0, Block.STONE));
+            assertThrows(Exception.class, () -> modifier.setRelative(0, 81, 0, Block.STONE));
+            modifier.setRelative(0, -1, 0, Block.STONE);
+            modifier.setRelative(0, 0, 0, Block.STONE);
+            modifier.setRelative(5, 21, 5, Block.STONE);
+        };
+        generator.generate(request(null, chunkUnits));
+        assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 0));
+        assertEquals(Block.STONE.stateId(), sections[2].blockPalette().get(5, 5, 5));
     }
 
     @Test
@@ -140,9 +167,8 @@ public class GeneratorTest {
             var unit = (GenerationUnit.Section) request.unit();
             unit.modifier().fill(Block.STONE);
         };
-
         generator.generate(request(null, chunkUnit));
-        section.blockPalette().getAllPresent((x, y, z, value) ->
+        section.blockPalette().getAll((x, y, z, value) ->
                 assertEquals(Block.STONE.stateId(), value));
     }
 
