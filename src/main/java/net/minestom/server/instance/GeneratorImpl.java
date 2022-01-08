@@ -5,11 +5,14 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.UnitModifier;
-import net.minestom.server.utils.chunk.ChunkUtils;
+import net.minestom.server.world.biomes.Biome;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static net.minestom.server.utils.chunk.ChunkUtils.getChunkCoordinate;
+import static net.minestom.server.utils.chunk.ChunkUtils.toSectionRelativeCoordinate;
 
 final class GeneratorImpl {
     private static final Vec SECTION_SIZE = new Vec(16);
@@ -29,10 +32,18 @@ final class GeneratorImpl {
         final var end = start.add(16);
         final UnitModifier modifier = new ModifierImpl(SECTION_SIZE, start, end) {
             @Override
+            public void setBiome(int x, int y, int z, @NotNull Biome biome) {
+                section.biomePalette().set(
+                        toSectionRelativeCoordinate(x) / 4,
+                        toSectionRelativeCoordinate(y) / 4,
+                        toSectionRelativeCoordinate(z) / 4, biome.id());
+            }
+
+            @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
-                final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
-                final int localY = ChunkUtils.toSectionRelativeCoordinate(y);
-                final int localZ = ChunkUtils.toSectionRelativeCoordinate(z);
+                final int localX = toSectionRelativeCoordinate(x);
+                final int localY = toSectionRelativeCoordinate(y);
+                final int localZ = toSectionRelativeCoordinate(z);
                 section.blockPalette().set(localX, localY, localZ, block.stateId());
             }
 
@@ -74,13 +85,24 @@ final class GeneratorImpl {
         final UnitModifier modifier = new ModifierImpl(size, start, end) {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
-                if (ChunkUtils.getChunkCoordinate(x) != chunkX || ChunkUtils.getChunkCoordinate(z) != chunkZ) {
+                if (getChunkCoordinate(x) != chunkX || getChunkCoordinate(z) != chunkZ) {
                     throw new IllegalArgumentException("x and z must be in the same chunk");
                 }
                 y -= minY;
-                final int sectionY = ChunkUtils.getChunkCoordinate(y);
+                final int sectionY = getChunkCoordinate(y);
                 final GenerationUnit.Section section = sections.get(sectionY);
                 section.modifier().setBlock(x, y, z, block);
+            }
+
+            @Override
+            public void setBiome(int x, int y, int z, @NotNull Biome biome) {
+                if (getChunkCoordinate(x) != chunkX || getChunkCoordinate(z) != chunkZ) {
+                    throw new IllegalArgumentException("x and z must be in the same chunk");
+                }
+                y -= minY;
+                final int sectionY = getChunkCoordinate(y);
+                final GenerationUnit.Section section = sections.get(sectionY);
+                section.modifier().setBiome(x, y, z, biome);
             }
 
             @Override
