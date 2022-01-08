@@ -6,6 +6,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
+import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -162,6 +163,37 @@ public class GeneratorTest {
         generator.generate(request(null, chunkUnits));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 0));
         assertEquals(Block.STONE.stateId(), sections[2].blockPalette().get(5, 5, 5));
+    }
+
+    @Test
+    public void chunkRelativeAll() {
+        final int minSection = 0;
+        final int maxSection = 5;
+        final int chunkX = 3;
+        final int chunkZ = 2;
+        final int sectionCount = maxSection - minSection;
+        Section[] sections = new Section[sectionCount];
+        Arrays.setAll(sections, i -> new Section());
+        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection,
+                new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ));
+        Generator generator = request -> {
+            GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
+            var modifier = chunk.modifier();
+            Set<Point> points = new HashSet<>();
+            modifier.setAllRelative((x, y, z) -> {
+                assertTrue(MathUtils.isBetween(x, 0, 16), "x out of bounds: " + x);
+                assertTrue(MathUtils.isBetween(y, minSection * 16, maxSection * 16), "y out of bounds: " + y);
+                assertTrue(MathUtils.isBetween(z, 0, 16), "z out of bounds: " + z);
+                assertTrue(points.add(new Vec(x, y, z)), "Duplicate point: " + x + ", " + y + ", " + z);
+                return Block.STONE;
+            });
+            assertEquals(16 * 16 * 16 * sectionCount, points.size());
+        };
+        generator.generate(request(null, chunkUnits));
+        for (var section : sections) {
+            section.blockPalette().getAll((x, y, z, value) ->
+                    assertEquals(Block.STONE.stateId(), value));
+        }
     }
 
     @Test
