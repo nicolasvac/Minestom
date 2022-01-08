@@ -105,6 +105,16 @@ final class GeneratorImpl {
             }
 
             @Override
+            public void setAllRelative(@NotNull Supplier supplier) {
+                for (int i = 0; i < sections.size(); i++) {
+                    final GenerationUnit.Section section = sections.get(i);
+                    final int offset = i * 16;
+                    section.modifier().setAllRelative((x, y, z) ->
+                            supplier.get(x, y + offset, z));
+                }
+            }
+
+            @Override
             public void fill(@NotNull Block block) {
                 for (GenerationUnit.Section section : sections) {
                     section.modifier().fill(block);
