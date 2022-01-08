@@ -5,7 +5,6 @@ import net.minestom.demo.generator.ChunkGeneratorDemo;
 import net.minestom.demo.generator.NoiseTestGenerator;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.audience.Audiences;
-import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -128,8 +127,7 @@ public class PlayerInit {
 
         instanceContainer.setGenerator(request -> {
             GenerationUnit unit = request.unit();
-            final Point size = unit.size();
-            unit.modifier().fill(new Vec(0, 0, 0), new Vec(size.x(), 40, size.z()), Block.STONE);
+            unit.modifier().setAll((x, y, z) -> y > 40 ? Block.AIR : Block.STONE);
         });
 
         inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
