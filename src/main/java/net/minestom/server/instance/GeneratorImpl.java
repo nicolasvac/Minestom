@@ -27,7 +27,7 @@ final class GeneratorImpl {
         }
         final var start = SECTION_SIZE.mul(sectionX, sectionY, sectionZ);
         final var end = start.add(16);
-        final UnitModifier modifier = new ModifierImpl(start, end) {
+        final UnitModifier modifier = new ModifierImpl(SECTION_SIZE, start, end) {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
                 final int localX = ChunkUtils.toSectionRelativeCoordinate(x);
@@ -39,6 +39,11 @@ final class GeneratorImpl {
             @Override
             public void setRelative(int x, int y, int z, @NotNull Block block) {
                 section.blockPalette().set(x, y, z, block.stateId());
+            }
+
+            @Override
+            public void setAllRelative(@NotNull Supplier supplier) {
+                section.blockPalette().setAll((x, y, z) -> supplier.get(x, y, z).stateId());
             }
 
             @Override
@@ -66,7 +71,7 @@ final class GeneratorImpl {
         final var size = new Vec(16, (maxSection - minSection) * 16, 16);
         final var start = new Vec(chunkX * 16, minY, chunkZ * 16);
         final var end = new Vec(chunkX * 16 + 16, size.y() + minY, chunkZ * 16 + 16);
-        final UnitModifier modifier = new ModifierImpl(start, end) {
+        final UnitModifier modifier = new ModifierImpl(size, start, end) {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
                 if (ChunkUtils.getChunkCoordinate(x) != chunkX || ChunkUtils.getChunkCoordinate(z) != chunkZ) {
@@ -90,6 +95,18 @@ final class GeneratorImpl {
             }
 
             @Override
+            public void setAll(@NotNull Supplier supplier) {
+                for (GenerationUnit.Section section : sections) {
+                    final var start = section.absoluteStart();
+                    final int startX = start.blockX();
+                    final int startY = start.blockY();
+                    final int startZ = start.blockZ();
+                    section.modifier().setAllRelative((x, y, z) ->
+                            supplier.get(x + startX, y + startY, z + startZ));
+                }
+            }
+
+            @Override
             public void fill(@NotNull Block block) {
                 for (GenerationUnit.Section section : sections) {
                     section.modifier().fill(block);
@@ -100,9 +117,10 @@ final class GeneratorImpl {
     }
 
     static abstract class ModifierImpl implements UnitModifier {
-        private final Point start, end;
+        private final Point size, start, end;
 
-        public ModifierImpl(Point start, Point end) {
+        public ModifierImpl(Point size, Point start, Point end) {
+            this.size = size;
             this.start = start;
             this.end = end;
         }
@@ -113,6 +131,17 @@ final class GeneratorImpl {
                 for (int y = start.blockY(); y < end.blockY(); y++) {
                     for (int z = start.blockZ(); z < end.blockZ(); z++) {
                         setBlock(x, y, z, supplier.get(x, y, z));
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void setAllRelative(@NotNull Supplier supplier) {
+            for (int x = 0; x < size.blockX(); x++) {
+                for (int y = 0; y < size.blockY(); y++) {
+                    for (int z = 0; z < size.blockZ(); z++) {
+                        setRelative(x, y, z, supplier.get(x, y, z));
                     }
                 }
             }

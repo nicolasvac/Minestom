@@ -122,7 +122,7 @@ public class GeneratorTest {
             var modifier = chunk.modifier();
             Set<Point> points = new HashSet<>();
             modifier.setAll((x, y, z) -> {
-                assertTrue(points.add(new Vec(x, y, z)), "Duplicate point");
+                assertTrue(points.add(new Vec(x, y, z)), "Duplicate point: " + x + ", " + y + ", " + z);
                 assertEquals(chunkX, ChunkUtils.getChunkCoordinate(x));
                 assertEquals(chunkZ, ChunkUtils.getChunkCoordinate(z));
                 return Block.STONE;
