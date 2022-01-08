@@ -222,6 +222,29 @@ public class GeneratorTest {
     }
 
     @Test
+    public void chunkBiomeFill() {
+        final int minSection = -1;
+        final int maxSection = 5;
+        final int chunkX = 3;
+        final int chunkZ = 2;
+        final int sectionCount = maxSection - minSection;
+        Section[] sections = new Section[sectionCount];
+        Arrays.setAll(sections, i -> new Section());
+        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection,
+                new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ));
+        Generator generator = request -> {
+            GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
+            var modifier = chunk.modifier();
+            modifier.fillBiome(Biome.PLAINS);
+        };
+        generator.generate(request(null, chunkUnits));
+        for (var section : sections) {
+            section.biomePalette().getAll((x, y, z, value) ->
+                    assertEquals(Biome.PLAINS.id(), value));
+        }
+    }
+
+    @Test
     public void sectionFill() {
         Section section = new Section();
         var chunkUnit = GeneratorImpl.section(section, -1, -1, 0);

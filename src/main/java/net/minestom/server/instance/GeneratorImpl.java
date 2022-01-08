@@ -61,6 +61,11 @@ final class GeneratorImpl {
             public void fill(@NotNull Block block) {
                 section.blockPalette().fill(block.stateId());
             }
+
+            @Override
+            public void fillBiome(@NotNull Biome biome) {
+                section.biomePalette().fill(biome.id());
+            }
         };
         return new SectionImpl(sectionX, sectionY, sectionZ, SECTION_SIZE, start, end, modifier);
     }
@@ -140,6 +145,13 @@ final class GeneratorImpl {
             public void fill(@NotNull Block block) {
                 for (GenerationUnit.Section section : sections) {
                     section.modifier().fill(block);
+                }
+            }
+
+            @Override
+            public void fillBiome(@NotNull Biome biome) {
+                for (GenerationUnit.Section section : sections) {
+                    section.modifier().fillBiome(biome);
                 }
             }
         };
