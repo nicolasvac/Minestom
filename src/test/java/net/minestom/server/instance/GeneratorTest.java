@@ -154,20 +154,21 @@ public class GeneratorTest {
             assertThrows(Exception.class, () -> modifier.setRelative(-1, 0, 0, Block.STONE));
             assertThrows(Exception.class, () -> modifier.setRelative(16, 0, 0, Block.STONE));
             assertThrows(Exception.class, () -> modifier.setRelative(17, 0, 0, Block.STONE));
-            assertThrows(Exception.class, () -> modifier.setRelative(0, -17, 0, Block.STONE));
-            assertThrows(Exception.class, () -> modifier.setRelative(0, 81, 0, Block.STONE));
-            modifier.setRelative(0, -1, 0, Block.STONE);
+            assertThrows(Exception.class, () -> modifier.setRelative(0, -1, 0, Block.STONE));
+            assertThrows(Exception.class, () -> modifier.setRelative(0, 96, 0, Block.STONE));
             modifier.setRelative(0, 0, 0, Block.STONE);
-            modifier.setRelative(5, 21, 5, Block.STONE);
+            modifier.setRelative(0, 16, 2, Block.STONE);
+            modifier.setRelative(5, 33, 5, Block.STONE);
         };
         generator.generate(request(null, chunkUnits));
-        assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 0));
-        assertEquals(Block.STONE.stateId(), sections[2].blockPalette().get(5, 5, 5));
+        assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(0, 0, 0));
+        assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 2));
+        assertEquals(Block.STONE.stateId(), sections[2].blockPalette().get(5, 1, 5));
     }
 
     @Test
     public void chunkRelativeAll() {
-        final int minSection = 0;
+        final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = 2;
@@ -182,7 +183,7 @@ public class GeneratorTest {
             Set<Point> points = new HashSet<>();
             modifier.setAllRelative((x, y, z) -> {
                 assertTrue(MathUtils.isBetween(x, 0, 16), "x out of bounds: " + x);
-                assertTrue(MathUtils.isBetween(y, minSection * 16, maxSection * 16), "y out of bounds: " + y);
+                assertTrue(MathUtils.isBetween(y, 0, sectionCount * 16), "y out of bounds: " + y);
                 assertTrue(MathUtils.isBetween(z, 0, 16), "z out of bounds: " + z);
                 assertTrue(points.add(new Vec(x, y, z)), "Duplicate point: " + x + ", " + y + ", " + z);
                 return Block.STONE;

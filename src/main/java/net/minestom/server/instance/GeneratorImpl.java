@@ -85,13 +85,11 @@ final class GeneratorImpl {
 
             @Override
             public void setRelative(int x, int y, int z, @NotNull Block block) {
-                if (x < 0 || x >= 16 || y < start.y() || y >= end.y() || z < 0 || z >= 16) {
-                    throw new IllegalArgumentException("x, y and z must be in the chunk");
+                if (x < 0 || x >= size.x() || y < 0 || y >= size.y() || z < 0 || z >= size.z()) {
+                    throw new IllegalArgumentException("x, y and z must be in the chunk: " + x + ", " + y + ", " + z);
                 }
-                y -= minY;
-                final int sectionY = ChunkUtils.getChunkCoordinate(y);
-                final GenerationUnit.Section section = sections.get(sectionY);
-                section.modifier().setBlock(x, y, z, block);
+                final GenerationUnit.Section section = sections.get(y / 16);
+                section.modifier().setBlock(x, y % 16, z, block);
             }
 
             @Override
