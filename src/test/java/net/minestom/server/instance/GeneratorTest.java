@@ -1,5 +1,6 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationRequest;
@@ -10,11 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GeneratorTest {
 
@@ -118,11 +120,14 @@ public class GeneratorTest {
         Generator generator = request -> {
             GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
             var modifier = chunk.modifier();
+            Set<Point> points = new HashSet<>();
             modifier.setAll((x, y, z) -> {
+                assertTrue(points.add(new Vec(x, y, z)), "Duplicate point");
                 assertEquals(chunkX, ChunkUtils.getChunkCoordinate(x));
                 assertEquals(chunkZ, ChunkUtils.getChunkCoordinate(z));
                 return Block.STONE;
             });
+            assertEquals(16 * 16 * 16 * sectionCount, points.size());
         };
         generator.generate(request(null, chunkUnits));
         for (var section : sections) {

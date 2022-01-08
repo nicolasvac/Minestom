@@ -25,7 +25,7 @@ final class GeneratorImpl {
                            Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
                 implements GenerationUnit.Section {
         }
-        final var start = new Vec(sectionX * 16, sectionY * 16, sectionZ * 16);
+        final var start = SECTION_SIZE.mul(sectionX, sectionY, sectionZ);
         final var end = start.add(16);
         final UnitModifier modifier = new ModifierImpl(start, end) {
             @Override
