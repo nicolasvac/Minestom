@@ -93,7 +93,7 @@ public class GeneratorTest {
             modifier.setBlock(56, 0, 40, Block.STONE);
             modifier.setBlock(56, 17, 40, Block.STONE);
         };
-        generator.generate(request(null, chunkUnits));
+        generator.generate(request(chunkUnits));
         assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(8, 0, 8));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(8, 1, 8));
     }
@@ -121,7 +121,7 @@ public class GeneratorTest {
             });
             assertEquals(16 * 16 * 16 * sectionCount, points.size());
         };
-        generator.generate(request(null, chunkUnits));
+        generator.generate(request(chunkUnits));
         for (var section : sections) {
             section.blockPalette().getAll((x, y, z, value) ->
                     assertEquals(Block.STONE.stateId(), value));
@@ -151,7 +151,7 @@ public class GeneratorTest {
             modifier.setRelative(0, 16, 2, Block.STONE);
             modifier.setRelative(5, 33, 5, Block.STONE);
         };
-        generator.generate(request(null, chunkUnits));
+        generator.generate(request(chunkUnits));
         assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(0, 0, 0));
         assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(0, 0, 2));
         assertEquals(Block.STONE.stateId(), sections[2].blockPalette().get(5, 1, 5));
@@ -181,7 +181,7 @@ public class GeneratorTest {
             });
             assertEquals(16 * 16 * 16 * sectionCount, points.size());
         };
-        generator.generate(request(null, chunkUnits));
+        generator.generate(request(chunkUnits));
         for (var section : sections) {
             section.blockPalette().getAll((x, y, z, value) ->
                     assertEquals(Block.STONE.stateId(), value));
@@ -205,7 +205,7 @@ public class GeneratorTest {
             modifier.setBiome(48, 0, 32, Biome.PLAINS);
             modifier.setBiome(48 + 8, 0, 32, Biome.PLAINS);
         };
-        generator.generate(request(null, chunkUnits));
+        generator.generate(request(chunkUnits));
         assertEquals(Biome.PLAINS.id(), sections[0].biomePalette().get(0, 0, 0));
         assertEquals(0, sections[0].biomePalette().get(1, 0, 0));
         assertEquals(Biome.PLAINS.id(), sections[0].biomePalette().get(2, 0, 0));
@@ -227,7 +227,7 @@ public class GeneratorTest {
             var modifier = chunk.modifier();
             modifier.fillBiome(Biome.PLAINS);
         };
-        generator.generate(request(null, chunkUnits));
+        generator.generate(request(chunkUnits));
         for (var section : sections) {
             section.biomePalette().getAll((x, y, z, value) ->
                     assertEquals(Biome.PLAINS.id(), value));
@@ -239,18 +239,13 @@ public class GeneratorTest {
         Section section = new Section();
         var chunkUnit = GeneratorImpl.section(section, -1, -1, 0);
         Generator generator = request -> request.unit().modifier().fill(Block.STONE);
-        generator.generate(request(null, chunkUnit));
+        generator.generate(request(chunkUnit));
         section.blockPalette().getAll((x, y, z, value) ->
                 assertEquals(Block.STONE.stateId(), value));
     }
 
-    private GenerationRequest request(Instance instance, GenerationUnit unit) {
+    private GenerationRequest request(GenerationUnit unit) {
         return new GenerationRequest() {
-            @Override
-            public @NotNull Instance instance() {
-                return instance;
-            }
-
             @Override
             public void returnAsync(@NotNull CompletableFuture<?> future) {
                 // Empty

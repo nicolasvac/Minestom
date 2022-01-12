@@ -297,16 +297,10 @@ public class InstanceContainer extends Instance {
         Check.notNull(chunk, "Chunks supplied by a ChunkSupplier cannot be null.");
         Generator generator = getGenerator();
         if (generator != null && chunk.shouldGenerate()) {
-            final Instance instance = this;
             AtomicReference<CompletableFuture<?>> stage = new AtomicReference<>(null);
             var chunkUnit = GeneratorImpl.chunk(getSectionMinY(), getSectionMaxY(),
                     new GeneratorImpl.ChunkEntry(chunk));
             generator.generate(new GenerationRequest() {
-                @Override
-                public @NotNull Instance instance() {
-                    return instance;
-                }
-
                 @Override
                 public void returnAsync(@NotNull CompletableFuture<?> future) {
                     stage.set(future);
