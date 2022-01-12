@@ -23,6 +23,16 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GeneratorTest {
 
     @Test
+    public void unitSize() {
+        assertDoesNotThrow(() -> GenerationUnit.unit(null, Vec.ZERO, new Vec(16)));
+        assertDoesNotThrow(() -> GenerationUnit.unit(null, new Vec(16), new Vec(32)));
+        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, new Vec(15), Vec.ZERO));
+        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, new Vec(15), new Vec(32)));
+        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, new Vec(15), new Vec(31)));
+        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, Vec.ZERO, new Vec(15)));
+    }
+
+    @Test
     public void chunkSize() {
         final int minSection = 0;
         final int maxSection = 5;
