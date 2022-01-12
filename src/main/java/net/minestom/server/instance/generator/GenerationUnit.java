@@ -2,9 +2,6 @@ package net.minestom.server.instance.generator;
 
 import net.minestom.server.coordinate.Point;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
-
-import java.util.List;
 
 public interface GenerationUnit {
     @NotNull UnitModifier modifier();
@@ -15,23 +12,28 @@ public interface GenerationUnit {
 
     @NotNull Point absoluteEnd();
 
-    interface Section extends GenerationUnit {
-        int sectionX();
+    static GenerationUnit unit(UnitModifier modifier, Point absoluteStart, Point absoluteEnd) {
+        final Point size = absoluteEnd.sub(absoluteStart);
+        return new GenerationUnit() {
+            @Override
+            public @NotNull UnitModifier modifier() {
+                return modifier;
+            }
 
-        int sectionY();
+            @Override
+            public @NotNull Point size() {
+                return size;
+            }
 
-        int sectionZ();
-    }
+            @Override
+            public @NotNull Point absoluteStart() {
+                return absoluteStart;
+            }
 
-    interface Chunk extends GenerationUnit {
-        int chunkX();
-
-        int chunkZ();
-
-        @NotNull List<Section> sections();
-
-        default @UnknownNullability Section section(int offset) {
-            return sections().get(offset);
-        }
+            @Override
+            public @NotNull Point absoluteEnd() {
+                return absoluteEnd;
+            }
+        };
     }
 }

@@ -13,13 +13,13 @@ import org.jetbrains.annotations.NotNull;
 record ChunkGeneratorCompatibilityLayer(@NotNull ChunkGenerator chunkGenerator) implements Generator {
     @Override
     public void generate(@NotNull GenerationRequest request) {
-        GenerationUnit.Chunk chunk = (GenerationUnit.Chunk) request.unit();
+        GenerationUnit chunk = request.unit();
         ChunkBatch batch = new ChunkBatch() {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
                 chunk.modifier().setBlock(x, y, z, block);
             }
         };
-        chunkGenerator.generateChunkData(batch, chunk.chunkX(), chunk.chunkZ());
+        chunkGenerator.generateChunkData(batch, -999, -999);
     }
 }

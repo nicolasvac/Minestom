@@ -23,13 +23,9 @@ final class GeneratorImpl {
         }
     }
 
-    static GenerationUnit.Section section(Section section, int sectionX, int sectionY, int sectionZ) {
-        record SectionImpl(int sectionX, int sectionY, int sectionZ,
-                           Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
-                implements GenerationUnit.Section {
-        }
+    static GenerationUnit section(Section section, int sectionX, int sectionY, int sectionZ) {
         final var start = SECTION_SIZE.mul(sectionX, sectionY, sectionZ);
-        final var end = start.add(16);
+        final var end = start.add(SECTION_SIZE);
         final UnitModifier modifier = new ModifierImpl(SECTION_SIZE, start, end) {
             @Override
             public void setBiome(int x, int y, int z, @NotNull Biome biome) {
@@ -67,20 +63,15 @@ final class GeneratorImpl {
                 section.biomePalette().fill(biome.id());
             }
         };
-        return new SectionImpl(sectionX, sectionY, sectionZ, SECTION_SIZE, start, end, modifier);
+        return GenerationUnit.unit(modifier, start, end);
     }
 
-    static GenerationUnit.Chunk chunk(int minSection, int maxSection, ChunkEntry chunk) {
+    static GenerationUnit chunk(int minSection, int maxSection, ChunkEntry chunk) {
         final int minY = minSection * 16;
-
         AtomicInteger sectionCounterY = new AtomicInteger(minSection);
-        List<GenerationUnit.Section> sections = chunk.sections().stream()
+        List<GenerationUnit> sections = chunk.sections().stream()
                 .map(section -> section(section, chunk.x(), sectionCounterY.getAndIncrement(), chunk.z()))
                 .toList();
-        record Impl(int chunkX, int chunkZ, int minY, List<Section> sections,
-                    Point size, Point absoluteStart, Point absoluteEnd, UnitModifier modifier)
-                implements GenerationUnit.Chunk {
-        }
 
         final int chunkX = chunk.x();
         final int chunkZ = chunk.z();
@@ -95,7 +86,7 @@ final class GeneratorImpl {
                 }
                 y -= minY;
                 final int sectionY = getChunkCoordinate(y);
-                final GenerationUnit.Section section = sections.get(sectionY);
+                final GenerationUnit section = sections.get(sectionY);
                 section.modifier().setBlock(x, y, z, block);
             }
 
@@ -106,7 +97,7 @@ final class GeneratorImpl {
                 }
                 y -= minY;
                 final int sectionY = getChunkCoordinate(y);
-                final GenerationUnit.Section section = sections.get(sectionY);
+                final GenerationUnit section = sections.get(sectionY);
                 section.modifier().setBiome(x, y, z, biome);
             }
 
@@ -115,13 +106,13 @@ final class GeneratorImpl {
                 if (x < 0 || x >= size.x() || y < 0 || y >= size.y() || z < 0 || z >= size.z()) {
                     throw new IllegalArgumentException("x, y and z must be in the chunk: " + x + ", " + y + ", " + z);
                 }
-                final GenerationUnit.Section section = sections.get(y / 16);
+                final GenerationUnit section = sections.get(y / 16);
                 section.modifier().setBlock(x, y % 16, z, block);
             }
 
             @Override
             public void setAll(@NotNull Supplier supplier) {
-                for (GenerationUnit.Section section : sections) {
+                for (GenerationUnit section : sections) {
                     final var start = section.absoluteStart();
                     final int startX = start.blockX();
                     final int startY = start.blockY();
@@ -134,7 +125,7 @@ final class GeneratorImpl {
             @Override
             public void setAllRelative(@NotNull Supplier supplier) {
                 for (int i = 0; i < sections.size(); i++) {
-                    final GenerationUnit.Section section = sections.get(i);
+                    final GenerationUnit section = sections.get(i);
                     final int offset = i * 16;
                     section.modifier().setAllRelative((x, y, z) ->
                             supplier.get(x, y + offset, z));
@@ -143,19 +134,19 @@ final class GeneratorImpl {
 
             @Override
             public void fill(@NotNull Block block) {
-                for (GenerationUnit.Section section : sections) {
+                for (GenerationUnit section : sections) {
                     section.modifier().fill(block);
                 }
             }
 
             @Override
             public void fillBiome(@NotNull Biome biome) {
-                for (GenerationUnit.Section section : sections) {
+                for (GenerationUnit section : sections) {
                     section.modifier().fillBiome(biome);
                 }
             }
         };
-        return new Impl(chunkX, chunkZ, minY, sections, size, start, end, modifier);
+        return GenerationUnit.unit(modifier, start, end);
     }
 
     static abstract class ModifierImpl implements UnitModifier {

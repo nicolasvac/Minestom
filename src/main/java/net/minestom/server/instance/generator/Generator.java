@@ -11,16 +11,4 @@ public interface Generator {
     default void generateAll(@NotNull List<GenerationRequest> requests) {
         requests.forEach(this::generate);
     }
-
-    static <T extends GenerationUnit> @NotNull Generator specialize(@NotNull Class<T> subtype,
-                                                                    @NotNull Generator generator) {
-        return (request) -> {
-            GenerationUnit unit = request.unit();
-            if (subtype.isInstance(unit)) {
-                generator.generate(request);
-                return;
-            }
-            throw new UnsupportedOperationException("Not implemented yet: " + request + " " + subtype);
-        };
-    }
 }
