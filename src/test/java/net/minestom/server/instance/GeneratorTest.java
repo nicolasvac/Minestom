@@ -37,7 +37,7 @@ public class GeneratorTest {
         final int minSection = 0;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -53,7 +53,7 @@ public class GeneratorTest {
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -68,7 +68,7 @@ public class GeneratorTest {
     public void sectionSize() {
         final int sectionX = 3;
         final int sectionY = -5;
-        final int sectionZ = 2;
+        final int sectionZ = -2;
         GenerationUnit section = GeneratorImpl.section(new Section(), sectionX, sectionY, sectionZ);
         assertEquals(new Vec(16), section.size());
         assertEquals(new Vec(sectionX * 16, sectionY * 16, sectionZ * 16), section.absoluteStart());
@@ -80,7 +80,7 @@ public class GeneratorTest {
         final int minSection = 0;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -90,12 +90,12 @@ public class GeneratorTest {
             GenerationUnit chunk = request.unit();
             var modifier = chunk.modifier();
             assertThrows(Exception.class, () -> modifier.setBlock(0, 0, 0, Block.STONE), "Block outside of chunk");
-            modifier.setBlock(56, 0, 40, Block.STONE);
-            modifier.setBlock(56, 17, 40, Block.STONE);
+            modifier.setBlock(56, 0, -25, Block.STONE);
+            modifier.setBlock(56, 17, -25, Block.STONE);
         };
         generator.generate(request(chunkUnits));
-        assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(8, 0, 8));
-        assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(8, 1, 8));
+        assertEquals(Block.STONE.stateId(), sections[0].blockPalette().get(8, 0, 7));
+        assertEquals(Block.STONE.stateId(), sections[1].blockPalette().get(8, 1, 7));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class GeneratorTest {
         final int minSection = 0;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -133,7 +133,7 @@ public class GeneratorTest {
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -162,7 +162,7 @@ public class GeneratorTest {
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -193,7 +193,7 @@ public class GeneratorTest {
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());
@@ -202,8 +202,8 @@ public class GeneratorTest {
         Generator generator = request -> {
             GenerationUnit chunk = request.unit();
             var modifier = chunk.modifier();
-            modifier.setBiome(48, 0, 32, Biome.PLAINS);
-            modifier.setBiome(48 + 8, 0, 32, Biome.PLAINS);
+            modifier.setBiome(48, 0, -32, Biome.PLAINS);
+            modifier.setBiome(48 + 8, 0, -32, Biome.PLAINS);
         };
         generator.generate(request(chunkUnits));
         assertEquals(Biome.PLAINS.id(), sections[0].biomePalette().get(0, 0, 0));
@@ -216,7 +216,7 @@ public class GeneratorTest {
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
-        final int chunkZ = 2;
+        final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
         Arrays.setAll(sections, i -> new Section());

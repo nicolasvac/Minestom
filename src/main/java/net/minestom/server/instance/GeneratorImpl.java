@@ -81,9 +81,7 @@ final class GeneratorImpl {
         final UnitModifier modifier = new ModifierImpl(size, start, end) {
             @Override
             public void setBlock(int x, int y, int z, @NotNull Block block) {
-                if (getChunkCoordinate(x) != chunkX || getChunkCoordinate(z) != chunkZ) {
-                    throw new IllegalArgumentException("x and z must be in the same chunk");
-                }
+                checkChunk(x, chunkX, z, chunkZ);
                 y -= minY;
                 final int sectionY = getChunkCoordinate(y);
                 final GenerationUnit section = sections.get(sectionY);
@@ -92,9 +90,7 @@ final class GeneratorImpl {
 
             @Override
             public void setBiome(int x, int y, int z, @NotNull Biome biome) {
-                if (getChunkCoordinate(x) != chunkX || getChunkCoordinate(z) != chunkZ) {
-                    throw new IllegalArgumentException("x and z must be in the same chunk");
-                }
+                checkChunk(x, chunkX, z, chunkZ);
                 y -= minY;
                 final int sectionY = getChunkCoordinate(y);
                 final GenerationUnit section = sections.get(sectionY);
@@ -147,6 +143,16 @@ final class GeneratorImpl {
             }
         };
         return GenerationUnit.unit(modifier, start, end);
+    }
+
+    private static void checkChunk(int x, int chunkX,
+                                   int z, int chunkZ) {
+        if (getChunkCoordinate(x) != chunkX) {
+            throw new IllegalArgumentException("x must be in the same chunk (" + chunkX + " != " + getChunkCoordinate(x) + ")");
+        }
+        if (getChunkCoordinate(z) != chunkZ) {
+            throw new IllegalArgumentException("z must be in the same chunk (" + chunkZ + " != " + getChunkCoordinate(z) + ")");
+        }
     }
 
     static abstract class ModifierImpl implements UnitModifier {
