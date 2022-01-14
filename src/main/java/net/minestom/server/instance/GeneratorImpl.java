@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import static net.minestom.server.utils.chunk.ChunkUtils.getChunkCoordinate;
 import static net.minestom.server.utils.chunk.ChunkUtils.toSectionRelativeCoordinate;
@@ -63,7 +64,7 @@ final class GeneratorImpl {
                 section.biomePalette().fill(biome.id());
             }
         };
-        return GenerationUnit.unit(modifier, start, end);
+        return unit(modifier, start, end, List::of);
     }
 
     static GenerationUnit chunk(int minSection, int maxSection, ChunkEntry chunk) {
@@ -142,7 +143,7 @@ final class GeneratorImpl {
                 }
             }
         };
-        return GenerationUnit.unit(modifier, start, end);
+        return unit(modifier, start, end, generationUnit -> sections);
     }
 
     private static void checkChunk(int x, int chunkX,
@@ -153,6 +154,50 @@ final class GeneratorImpl {
         if (getChunkCoordinate(z) != chunkZ) {
             throw new IllegalArgumentException("z must be in the same chunk (" + chunkZ + " != " + getChunkCoordinate(z) + ")");
         }
+    }
+
+    static GenerationUnit unit(UnitModifier modifier, Point start, Point end,
+                               Function<GenerationUnit, List<GenerationUnit>> divider) {
+        if (start.x() > end.x() || start.y() > end.y() || start.z() > end.z()) {
+            throw new IllegalArgumentException("absoluteStart must be before absoluteEnd");
+        }
+        if (start.x() % 16 != 0 || start.y() % 16 != 0 || start.z() % 16 != 0) {
+            throw new IllegalArgumentException("absoluteStart must be a multiple of 16");
+        }
+        if (end.x() % 16 != 0 || end.y() % 16 != 0 || end.z() % 16 != 0) {
+            throw new IllegalArgumentException("absoluteEnd must be a multiple of 16");
+        }
+        final Point size = end.sub(start);
+        return new GenerationUnit() {
+            @Override
+            public @NotNull UnitModifier modifier() {
+                return modifier;
+            }
+
+            @Override
+            public @NotNull Point size() {
+                return size;
+            }
+
+            @Override
+            public @NotNull Point absoluteStart() {
+                return start;
+            }
+
+            @Override
+            public @NotNull Point absoluteEnd() {
+                return end;
+            }
+
+            @Override
+            public @NotNull List<GenerationUnit> subdivide() {
+                return divider.apply(this);
+            }
+        };
+    }
+
+    static GenerationUnit dummyUnit(Point start, Point end) {
+        return unit(null, start, end, null);
     }
 
     static abstract class ModifierImpl implements UnitModifier {

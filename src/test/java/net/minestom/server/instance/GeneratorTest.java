@@ -24,12 +24,12 @@ public class GeneratorTest {
 
     @Test
     public void unitSize() {
-        assertDoesNotThrow(() -> GenerationUnit.unit(null, Vec.ZERO, new Vec(16)));
-        assertDoesNotThrow(() -> GenerationUnit.unit(null, new Vec(16), new Vec(32)));
-        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, new Vec(15), Vec.ZERO));
-        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, new Vec(15), new Vec(32)));
-        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, new Vec(15), new Vec(31)));
-        assertThrows(IllegalArgumentException.class, () -> GenerationUnit.unit(null, Vec.ZERO, new Vec(15)));
+        assertDoesNotThrow(() -> GeneratorImpl.dummyUnit(Vec.ZERO, new Vec(16)));
+        assertDoesNotThrow(() -> GeneratorImpl.dummyUnit(new Vec(16), new Vec(32)));
+        assertThrows(IllegalArgumentException.class, () -> GeneratorImpl.dummyUnit(new Vec(15), Vec.ZERO));
+        assertThrows(IllegalArgumentException.class, () -> GeneratorImpl.dummyUnit(new Vec(15), new Vec(32)));
+        assertThrows(IllegalArgumentException.class, () -> GeneratorImpl.dummyUnit(new Vec(15), new Vec(31)));
+        assertThrows(IllegalArgumentException.class, () -> GeneratorImpl.dummyUnit(Vec.ZERO, new Vec(15)));
     }
 
     @Test
@@ -73,6 +73,27 @@ public class GeneratorTest {
         assertEquals(new Vec(16), section.size());
         assertEquals(new Vec(sectionX * 16, sectionY * 16, sectionZ * 16), section.absoluteStart());
         assertEquals(new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16), section.absoluteEnd());
+    }
+
+    @Test
+    public void chunkSubdivide() {
+        final int minSection = -1;
+        final int maxSection = 5;
+        final int chunkX = 3;
+        final int chunkZ = -2;
+        final int sectionCount = maxSection - minSection;
+        Section[] sections = new Section[sectionCount];
+        Arrays.setAll(sections, i -> new Section());
+        GenerationUnit chunk = GeneratorImpl.chunk(minSection, maxSection,
+                new GeneratorImpl.ChunkEntry(List.of(sections), chunkX, chunkZ));
+        var subUnits = chunk.subdivide();
+        assertEquals(sectionCount, subUnits.size());
+        for (int i = 0; i < sectionCount; i++) {
+            var subUnit = subUnits.get(i);
+            assertEquals(new Vec(16, 16, 16), subUnit.size());
+            assertEquals(new Vec(chunkX * 16, (i + minSection) * 16, chunkZ * 16), subUnit.absoluteStart());
+            assertEquals(subUnit.absoluteStart().add(16), subUnit.absoluteEnd());
+        }
     }
 
     @Test
