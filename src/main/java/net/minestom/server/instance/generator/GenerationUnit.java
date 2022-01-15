@@ -19,5 +19,7 @@ public interface GenerationUnit {
      *
      * @return an immutable list of independent units
      */
-    @NotNull List<GenerationUnit> subdivide();
+    default @NotNull List<GenerationUnit> subdivide() {
+        return List.of(this);
+    }
 }

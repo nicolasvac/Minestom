@@ -64,7 +64,7 @@ final class GeneratorImpl {
                 section.biomePalette().fill(biome.id());
             }
         };
-        return unit(modifier, start, end, List::of);
+        return unit(modifier, start, end, null);
     }
 
     static GenerationUnit chunk(int minSection, int maxSection, ChunkEntry chunk) {
@@ -191,7 +191,7 @@ final class GeneratorImpl {
 
             @Override
             public @NotNull List<GenerationUnit> subdivide() {
-                return divider.apply(this);
+                return divider != null ? divider.apply(this) : GenerationUnit.super.subdivide();
             }
         };
     }
