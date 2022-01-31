@@ -18,7 +18,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 
 record BlockImpl(@NotNull Registry.BlockEntry registry,
                  @NotNull int[] propertiesArray,
@@ -65,18 +64,7 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
                 PropertiesHolder[] propertiesKeys = new PropertiesHolder[propertiesCount];
                 BlockImpl[] blocksValues = new BlockImpl[propertiesCount];
                 final int minStateId = ((Number) object.get("minStateId")).intValue();
-                String[] finalKeys = keys;
-                forStates(finalValues, String[]::new, (stateEntry, index) -> {
-                    int[] propertiesArray = new int[finalKeys.length];
-                    int keyIndex = 0;
-                    for (var propertyValue : stateEntry) {
-                        final int valueIndex = ArrayUtils.indexOf(finalValues[keyIndex], propertyValue);
-                        if (valueIndex == -1) {
-                            throw new IllegalArgumentException("Unknown property value: " + propertyValue);
-                        }
-                        propertiesArray[keyIndex++] = valueIndex;
-                    }
-
+                forStates(finalValues, (propertiesArray, index) -> {
                     // TODO registry override
                     final int stateID = minStateId + index;
                     final BlockImpl block = new BlockImpl(Registry.block(namespace, stateID, object, Map.of()),
@@ -251,19 +239,17 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
         }
     }
 
-    private static <T> void forStates(T[][] sets, IntFunction<T[]> arrayConstructor,
-                                      BiConsumer<T[], Integer> consumer) {
+    private static <T> void forStates(T[][] sets, BiConsumer<int[], Integer> consumer) {
         int count = 0;
         while (true) {
             int tmp = count;
-            T[] value = arrayConstructor.apply(sets.length);
+            int[] value = new int[sets.length];
             for (int i = 0; i < value.length; i++) {
-                T[] set = sets[i];
-
+                final T[] set = sets[i];
                 final int radix = set.length;
                 final int index = tmp % radix;
 
-                value[i] = set[index];
+                value[i] = index;
                 tmp /= radix;
             }
             if (tmp != 0) {
