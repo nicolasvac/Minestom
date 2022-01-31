@@ -8,7 +8,6 @@ import net.minestom.server.registry.Registry;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.ArrayUtils;
 import net.minestom.server.utils.ObjectArray;
-import net.minestom.server.utils.block.BlockUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -17,7 +16,9 @@ import org.jglrxavpok.hephaistos.nbt.mutable.MutableNBTCompound;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 record BlockImpl(@NotNull Registry.BlockEntry registry,
                  @NotNull int[] propertiesArray,
@@ -34,7 +35,6 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
     private static final Registry.Container<Block> CONTAINER = Registry.createContainer(Registry.Resource.BLOCKS,
             (namespace, object) -> {
                 final int blockId = ((Number) object.get("id")).intValue();
-                final var stateObject = (Map<String, Object>) object.get("states");
 
                 // Retrieve properties
                 String[] keys = new String[0];
@@ -58,38 +58,35 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
                 PROPERTIES_VALUES.set(blockId, values);
 
                 // Retrieve block states
-                {
-                    final var stateEntries = stateObject.entrySet();
-                    final int propertiesCount = stateEntries.size();
-                    PropertiesHolder[] propertiesKeys = new PropertiesHolder[propertiesCount];
-                    BlockImpl[] blocksValues = new BlockImpl[propertiesCount];
-                    int propertiesOffset = 0;
-                    for (var stateEntry : stateEntries) {
-                        final String query = stateEntry.getKey();
-                        final var stateOverride = (Map<String, Object>) stateEntry.getValue();
-                        final var propertyMap = BlockUtils.parseProperties(query);
-                        assert keys.length == propertyMap.size();
-                        int[] propertiesArray = new int[keys.length];
-                        for (var entry : propertyMap.entrySet()) {
-                            final int keyIndex = ArrayUtils.indexOf(keys, entry.getKey());
-                            if (keyIndex == -1) {
-                                throw new IllegalArgumentException("Unknown property key: " + entry.getKey());
-                            }
-                            final int valueIndex = ArrayUtils.indexOf(values[keyIndex], entry.getValue());
-                            if (valueIndex == -1) {
-                                throw new IllegalArgumentException("Unknown property value: " + entry.getValue());
-                            }
-                            propertiesArray[keyIndex] = valueIndex;
-                        }
+                String[][] finalValues = values;
+                int propertiesCount = 1;
+                for (var v : values) propertiesCount *= v.length;
 
-                        final BlockImpl block = new BlockImpl(Registry.block(namespace, object, stateOverride),
-                                propertiesArray, null, null);
-                        BLOCK_STATE_MAP.set(block.stateId(), block);
-                        propertiesKeys[propertiesOffset] = new PropertiesHolder(propertiesArray);
-                        blocksValues[propertiesOffset++] = block;
+                PropertiesHolder[] propertiesKeys = new PropertiesHolder[propertiesCount];
+                BlockImpl[] blocksValues = new BlockImpl[propertiesCount];
+                final int minStateId = ((Number) object.get("minStateId")).intValue();
+                String[] finalKeys = keys;
+                forStates(finalValues, String[]::new, (stateEntry, index) -> {
+                    int[] propertiesArray = new int[finalKeys.length];
+                    int keyIndex = 0;
+                    for (var propertyValue : stateEntry) {
+                        final int valueIndex = ArrayUtils.indexOf(finalValues[keyIndex], propertyValue);
+                        if (valueIndex == -1) {
+                            throw new IllegalArgumentException("Unknown property value: " + propertyValue);
+                        }
+                        propertiesArray[keyIndex++] = valueIndex;
                     }
-                    POSSIBLE_STATES.set(blockId, ArrayUtils.toMap(propertiesKeys, blocksValues, propertiesOffset));
-                }
+
+                    // TODO registry override
+                    final int stateID = minStateId + index;
+                    final BlockImpl block = new BlockImpl(Registry.block(namespace, stateID, object, Map.of()),
+                            propertiesArray, null, null);
+                    BLOCK_STATE_MAP.set(stateID, block);
+                    propertiesKeys[index] = new PropertiesHolder(propertiesArray);
+                    blocksValues[index] = block;
+                });
+                POSSIBLE_STATES.set(blockId, ArrayUtils.toMap(propertiesKeys, blocksValues, propertiesCount));
+
                 // Register default state
                 final int defaultState = ((Number) object.get("defaultStateId")).intValue();
                 return getState(defaultState);
@@ -251,6 +248,29 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
         @Override
         public int hashCode() {
             return hashCode;
+        }
+    }
+
+    private static <T> void forStates(T[][] sets, IntFunction<T[]> arrayConstructor,
+                                      BiConsumer<T[], Integer> consumer) {
+        int count = 0;
+        while (true) {
+            int tmp = count;
+            T[] value = arrayConstructor.apply(sets.length);
+            for (int i = 0; i < value.length; i++) {
+                T[] set = sets[i];
+
+                final int radix = set.length;
+                final int index = tmp % radix;
+
+                value[i] = set[index];
+                tmp /= radix;
+            }
+            if (tmp != 0) {
+                // Overflow.
+                break;
+            }
+            consumer.accept(value, count++);
         }
     }
 }

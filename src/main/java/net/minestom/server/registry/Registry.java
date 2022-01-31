@@ -26,8 +26,8 @@ import java.util.function.Supplier;
  */
 public final class Registry {
     @ApiStatus.Internal
-    public static BlockEntry block(String namespace, @NotNull Map<String, Object> jsonObject, Map<String, Object> override) {
-        return new BlockEntry(namespace, jsonObject, override);
+    public static BlockEntry block(String namespace, int stateId, @NotNull Map<String, Object> jsonObject, Map<String, Object> override) {
+        return new BlockEntry(namespace, stateId, jsonObject, override);
     }
 
     @ApiStatus.Internal
@@ -165,11 +165,11 @@ public final class Registry {
         private final int blockEntityId;
         private final Supplier<Material> materialSupplier;
 
-        private BlockEntry(String namespace, Map<String, Object> main, Map<String, Object> override) {
+        private BlockEntry(String namespace, int stateId, Map<String, Object> main, Map<String, Object> override) {
             super(main, override);
             this.namespace = NamespaceID.from(namespace);
             this.id = getInt("id");
-            this.stateId = getInt("stateId");
+            this.stateId = stateId;
             this.translationKey = getString("translationKey");
             this.hardness = getDouble("hardness");
             this.explosionResistance = getDouble("explosionResistance");
