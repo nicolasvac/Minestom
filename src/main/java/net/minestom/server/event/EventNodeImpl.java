@@ -450,4 +450,30 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+
+        genEventGraph(buffer, "", "", this);
+
+        return buffer.toString();
+    }
+
+    private void genEventGraph(StringBuilder buffer, String prefix, String childrenPrefix, EventNode<?> node) {
+        buffer.append(prefix);
+        buffer.append(String.format("%s - EventType: %s - Priority: %d\n", node.getName(), node.getEventType().getSimpleName(), node.getPriority()));
+
+        var nextNodes = this.getChildren().stream().sorted(Comparator.comparingInt(EventNode::getPriority)).toList();
+
+        for (Iterator<? extends @NotNull EventNode<?>> iterator = nextNodes.iterator(); iterator.hasNext(); ) {
+
+            EventNode<?> next = iterator.next();
+            if (iterator.hasNext()) {
+                genEventGraph(buffer, childrenPrefix + '\u2520' + '\u2500' + " ", childrenPrefix + '\u2503' + "   ", next);
+            } else {
+                genEventGraph(buffer, childrenPrefix + '\u2517' + '\u2500' + " ", childrenPrefix + "    ", next);
+            }
+        }
+    }
 }
